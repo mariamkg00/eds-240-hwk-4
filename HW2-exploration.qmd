@@ -1,0 +1,112 @@
+### Part 2a
+
+-   Wrangling
+
+-   Tidying
+
+-   Visualize (3 plots)
+
+```{r warning = FALSE, message = FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                    Setup                                 ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#.........................load libraries.........................
+library(tidyverse)
+library(showtext)
+library(here)
+library(patchwork)
+#..........................import data...........................
+nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
+  
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          Data wrangling / cleaning                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# only keeping variables of interest(depth, chlorophyll, oxygen, dissolved organic nitrogen )
+
+nutrient_clean <- nutrient_data %>% 
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot) %>% # selecting columns of interest
+  na.omit() %>% # removing NAs
+  filter(depth <= 2000) %>% # only keeping observations with depth less than or equal to 3000 m below sea level
+  rename(bottle_id = botid_HOT,
+         dissolved_c = doc_bottle_hot,
+         dissolved_n = don_bottle_hot,
+         ph = ph_bottle_hot,
+         chlorophyll = chl_bottle_hot)
+
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                             Data visualization                           ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Line graph with different depth profiles
+nutrient_clean %>% 
+  ggplot() +
+  geom_line(aes(x = depth, y = dissolved_c), color = 'brown')+
+  geom_line(aes(x = depth, y = dissolved_n), color = 'green')+
+  coord_flip()
+
+# jitter plot with line of best fit
+
+nutrient_clean %>% 
+  ggplot(aes(x = depth, y = ph))+
+  geom_jitter()+
+  geom_smooth(se = FALSE)+
+  coord_flip()
+
+
+# scatter plot showing relationship between concentration of chlorophyll and depth
+
+nutrient_clean %>% 
+  ggplot(aes(x = depth, y = chlorophyll)) +
+  geom_jitter()+
+  coord_flip()+
+  geom_smooth(se = FALSE)
+
+
+
+# box plot with carbon and nitrogen
+
+box_c_96 <- nutrient_clean %>% 
+  filter(time < as.POSIXct("1996-06-26")) %>% 
+  ggplot()+
+  geom_boxplot(aes(x = "",dissolved_c))+
+  geom_jitter(aes(x = "", dissolved_c), alpha = 0.5)+
+  theme(
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    plot.title = element_text(hjust = 0.5)
+  )+
+   labs(y = 'Dissolved Carbon (μmol/kg)',
+        title = 'Distribution of Carbon Concentration before 1997')+
+  coord_flip()
+
+box_c_98 <- nutrient_clean %>% 
+  filter(time > as.POSIXct("1996-06-26")) %>% 
+  ggplot()+
+  geom_boxplot(aes(x = "",dissolved_c))+
+  geom_jitter(aes(x = "", dissolved_c), alpha = 0.5)+
+  theme(
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    plot.title = element_text(hjust = 0.5)
+  )+
+  labs(y = 'Dissolved Carbon (μmol/kg)',
+       title = 'Distribution of Carbon Concentration after 1996')+
+  coord_flip()
+
+box_c_96/box_c_98
+```
+
+### Part 2b
+
+-   **1.** What have you learned about your data? Have any potentially interesting patterns emerged? **(5-8 sentences)**
+
+I learned that my dataset has various different categories of nutrient concentrations, there are different types of observations of Nitrogen, Carbon, etc. I noticed with the `geom_jitter()` graph of chlorophyll and depth that the concentration of chlorophyll is at its peak 100 m below sea level. I would have expected a different outcome as I assumed that sunlight may not have been absorbed at that given depth. I noticed that plotting Nitrogen and Carbon together may not be ideal as their scales are different, so I was not able to see significant jumps or changes. I also noticed that a significant amount of rows did not contain data once I used `na.omit()` as my observations went from nearly 98,000 to around 500 observations.
+
+-   **2.** In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)? **(8-12 sentences)**
+
+-   **3.** What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. **(4-6 sentences)**
