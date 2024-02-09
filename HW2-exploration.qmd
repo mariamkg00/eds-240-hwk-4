@@ -1,3 +1,12 @@
+---
+title: "HW#2 Exploration"
+author: "Mariam Garcia"
+date: 2024-02-08
+format:
+  html:
+    embed-resources: true
+---
+
 ### Part 2a
 
 -   Wrangling
@@ -123,3 +132,9 @@ I initially wanted to visualize the relationship of depth on the concentration o
 -   **3.** What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. **(4-6 sentences)**
 
 I am a bit uneasy of the thought of not truly knowing what each variable stands for because it'll definitely play a role in how I understand my data. I think wrangling my data in a way that makes comprehensive sense and logic flow will be a challenge. I want to answer more than one question but I think it'll be challenging doing so given that there is no `nutrient type` column to facet wrap. I want to be creative as to how I present my findings.
+
+```{r}
+nutrient_clean %>% 
+  ggplot() +
+  geom_histogram(aes(x = chlorophyll))
+```
