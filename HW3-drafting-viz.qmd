@@ -80,7 +80,7 @@ ph_graph <- nutrient_clean %>%
   coord_fixed(ratio = 5, expand = TRUE)+
   geom_line(aes(x = depth, y = ph), color = "#800020", size = 0.25)+
   coord_flip()+
-  theme_classic()
+  theme_bw()
 ```
 
 ```{r}
@@ -132,6 +132,12 @@ nutrient_clean %>%
 ```
 
 ```{r}
+nutrient_clean %>% 
+  ggplot()+
+  geom_histogram(aes(x = dissolved_c), bins = 40)
+
+
+
 nutrient_clean %>% 
   ggplot()+
   geom_line(aes(x = depth, y = dissolved_c), color = '#808080', size = 0.25)+
