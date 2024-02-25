@@ -1,0 +1,152 @@
+---
+format:
+  html:
+    embed-resources: true
+---
+
+## Homework 3 Assignment
+
+For my final assignment, I aim to complete Option 1.
+
+My questions for the most part haven't changed. But, with the guidance of Sevan, I want to use variables that (for the most part) use the same units or do some data wrangling in the visualizations. My variables of interest are chlorophyll, depth, dissolved oxygen, dissolved carbon, and pH.
+
+My main question that the three visualizations aim to answer is : **How does depth affect water characteristics in Hawaii?**
+
+#### Variables of Interest
+
+The dataset used to answer my question comes from Hawaiian Ocean Timeseries (HOT) data. Their main objective is to record long-time series of physical and biogeochemical observations in the North Pacific subtropical gyre. The ALOHA station is located roughly 100 km north of Oahu. I will only be using one dataset as it contains all variables needed in order to answer my question. `Dissolved Organic Carbon` , `Dissolved Organic Nitrogen` and `Bottle CTD Oxygen` are both in µmol/kg. CTD stands for conductivity, temperature, and depth. The `pH` variable ranges from 1-14, and `Fluorometric Chlorophyll` is measured in µg/l.
+
+The first plot of interest will be a ternary plot using `ggtern`. In order to effectively get my message across, I needed to filter out depth to being 75 m below sea level.
+
+```{r warning = FALSE, message = FALSE}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                    Setup                                 ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#.........................load libraries.........................
+library(tidyverse)
+library(showtext)
+library(here)
+library(patchwork)
+library(sysfonts)
+#..........................import data...........................
+nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
+  
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          Data wrangling / cleaning                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# importing font of interest
+font_add_google(name = 'Inter', family = 'inter')
+
+
+# only keeping variables of interest(depth, chlorophyll, oxygen, dissolved organic nitrogen )
+
+nutrient_clean <- nutrient_data %>% 
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot, oxygen_ctd_bottle_hot, NO2_NO3_bottle_hot) %>% # selecting columns of interest
+  na.omit() %>% # removing NAs
+  # only keeping observations with depth less than or equal to 80 m below sea level
+  rename(bottle_id = botid_HOT,
+         dissolved_c = doc_bottle_hot,
+         dissolved_n = don_bottle_hot,
+         ph = ph_bottle_hot,
+         chlorophyll = chl_bottle_hot,
+         oxygen = oxygen_ctd_bottle_hot)  %>% 
+  filter(depth <= 80 & oxygen > 40)
+
+
+
+
+
+
+font_add_google(name = 'Josefin Sans', family = 'josefin')
+showtext_auto()
+nutrient_clean %>% 
+  ggtern(aes(z = oxygen, x = dissolved_c, y = depth))+
+  geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 3)+
+  theme_arrowlarge()+
+  Tlab("Depth (meters)")
+  # labs(x = "Dissolved \nCarbon \n(µmol/kg)",
+  #      y = 'Depth (meters)',
+  #      z = 'Bottle Dissolved \nOxygen (µmol/kg)',
+  #      title = 'Oceanographic Samples in Hawaii',
+  #      subtitle = 'Observations shown in this ternary plot are of water samples from Niskin bottles mounted on the CTD rosette at HOT (Hawaii Ocean Time Series) \nstation ALOHA, the primary HOT sampling site.',
+  #      tag = 'Data Source : Hawaii Ocean Time Series (HOT) https://hahana.soest.hawaii.edu/hot/')
+```
+
+```{r}
+ph_graph <- nutrient_clean %>% 
+  ggplot()+
+  coord_fixed(ratio = 5, expand = TRUE)+
+  geom_line(aes(x = depth, y = ph), color = "#800020", size = 0.25)+
+  coord_flip()+
+  theme_classic()
+```
+
+```{r}
+font_add_google(name = 'Inter', family = 'inter')
+
+
+nutrient_clean %>% 
+  ggplot()+
+  geom_line(aes(x = depth, y = chlorophyll), color = '#8A9A5B', size = 0.25)+
+  theme_bw()+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+  coord_fixed(ratio = 50)+
+  coord_flip()+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  labs(x = 'Depth (meters)',
+       y = 'Chlorophyll Concentration (µg/l)',
+       title = 'Depth Profile of Fluorometric Chlorophyll')+
+  theme(axis.title.x = element_text(family = 'inter', size = 14),
+        axis.title.y = element_text(family = 'inter', size = 14),
+        plot.title = element_text(family = 'josefin', size = 18, hjust = .5))+
+  inset_element(ph_depth,left = 0.5, 
+  bottom = 0.05, 
+  right = unit(1, 'npc') - unit(1, 'cm'), 
+  top = unit(1, 'npc') - unit(1, 'cm')
+)
+```
+
+```{r}
+nutrient_clean %>% 
+  ggplot()+
+  geom_line(aes(x = depth, y = dissolved_n), color = '#C19A6B', size = 0.25)+
+  theme_bw()+
+  coord_flip()+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+  coord_fixed(ratio = 5)+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  labs(x = 'Depth (meters)',
+       y = ' Concentration (µmol/kg)',
+       title = 'Depth Profile of Dissolved Nitrogen')+
+  theme(axis.title.x = element_text(family = 'inter', size = 14),
+        axis.title.y = element_text(family = 'inter', size = 14),
+        plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
+        axis.text.x = element_text(family = 'inter', size = 13),
+         axis.text.y = element_text(family = 'inter', size = 13))+
+  annotate("rect", xmin = 50, xmax = 70, ymin = 6, ymax = 9, 
+           size = .5, fill = 'lightgrey' ,alpha = 0.25)+
+  annotate('text', x = 68, y = 7.5, label = "Descending from the surface, the concentration of Nitrogen spikes to 9.36 µmol/kg. ", fontface = 'bold')+
+  coord_flip()
+```
+
+```{r}
+nutrient_clean %>% 
+  ggplot()+
+  geom_line(aes(x = depth, y = dissolved_c), color = '#808080', size = 0.25)+
+  theme_bw()+
+  coord_flip()+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+  coord_fixed(ratio = 5)+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
+  labs(x = 'Depth (meters)',
+       y = ' Concentration (µmol/kg)',
+       title = 'Depth Profile of Dissolved Nitrogen')+
+  theme(axis.title.x = element_text(family = 'inter', size = 14),
+        axis.title.y = element_text(family = 'inter', size = 14),
+        plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
+        axis.text.x = element_text(family = 'inter', size = 13),
+         axis.text.y = element_text(family = 'inter', size = 13))+
+  coord_flip()
+```
