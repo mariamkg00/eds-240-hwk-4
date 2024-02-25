@@ -16,6 +16,17 @@ My main question that the three visualizations aim to answer is : **How does dep
 
 The dataset used to answer my question comes from Hawaiian Ocean Timeseries (HOT) data. Their main objective is to record long-time series of physical and biogeochemical observations in the North Pacific subtropical gyre. The ALOHA station is located roughly 100 km north of Oahu. I will only be using one dataset as it contains all variables needed in order to answer my question. `Dissolved Organic Carbon` , `Dissolved Organic Nitrogen` and `Bottle CTD Oxygen` are both in µmol/kg. CTD stands for conductivity, temperature, and depth. The `pH` variable ranges from 1-14, and `Fluorometric Chlorophyll` is measured in µg/l.
 
+### Hand-drawn visualizations 
+
+```{r}
+#| eval: true
+#| echo: false
+#| fig-align: "center"
+#| out-width: "100%"
+#| fig-alt: "Alt text here"
+knitr::include_graphics("C:/Users/maria/Downloads/graphs_for_final.jpg")
+```
+
 The first plot of interest will be a ternary plot using `ggtern`. In order to effectively get my message across, I needed to filter out depth to being 75 m below sea level.
 
 ```{r warning = FALSE, message = FALSE}
@@ -29,6 +40,7 @@ library(showtext)
 library(here)
 library(patchwork)
 library(sysfonts)
+library(ggtern)
 #..........................import data...........................
 nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
   
@@ -63,16 +75,23 @@ font_add_google(name = 'Josefin Sans', family = 'josefin')
 showtext_auto()
 nutrient_clean %>% 
   ggtern(aes(z = oxygen, x = dissolved_c, y = depth))+
-  geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 3)+
+  geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 2)+
   theme_arrowlarge()+
-  Tlab("Depth (meters)")
-  # labs(x = "Dissolved \nCarbon \n(µmol/kg)",
+  Tlab("Depth (meters)")+
+  Rlab("Bottle Dissolved \nOxygen (µmol/kg)")+
+  Llab("Dissolved Carbon\n(µmol/kg)")+
+  labs(title = 'Ternary Plot of Oceanographic Samples in Hawaii',
+       color = 'Chlorophyll \nConcentration')+
+  theme(plot.title = element_text(family = 'josefin', size = 16, hjust = 0.5))
+# labs(x = "Dissolved \nCarbon \n(µmol/kg)",
   #      y = 'Depth (meters)',
   #      z = 'Bottle Dissolved \nOxygen (µmol/kg)',
   #      title = 'Oceanographic Samples in Hawaii',
   #      subtitle = 'Observations shown in this ternary plot are of water samples from Niskin bottles mounted on the CTD rosette at HOT (Hawaii Ocean Time Series) \nstation ALOHA, the primary HOT sampling site.',
   #      tag = 'Data Source : Hawaii Ocean Time Series (HOT) https://hahana.soest.hawaii.edu/hot/')
 ```
+
+My second visual will contain a depth profile with an inset graph being pH. The reason behind doing it this way is because these variables are in different units so they would not show if done otherwise.
 
 ```{r}
 ph_graph <- nutrient_clean %>% 
@@ -101,17 +120,23 @@ nutrient_clean %>%
   theme(axis.title.x = element_text(family = 'inter', size = 14),
         axis.title.y = element_text(family = 'inter', size = 14),
         plot.title = element_text(family = 'josefin', size = 18, hjust = .5))+
-  inset_element(ph_depth,left = 0.5, 
-  bottom = 0.05, 
+  inset_element(ph_graph,left = 0.5, 
+  bottom = 0.005, 
   right = unit(1, 'npc') - unit(1, 'cm'), 
   top = unit(1, 'npc') - unit(1, 'cm')
 )
 ```
 
+My third visualization will include a highlighted rectangle showing the spike and highlighting the maximum Nitrogren concentration value found with a highlighted red point along with some text.
+
 ```{r}
+
+
+point <- data.frame(y = 9.36, x = 57.9)
 nutrient_clean %>% 
   ggplot()+
   geom_line(aes(x = depth, y = dissolved_n), color = '#C19A6B', size = 0.25)+
+  geom_point(data = point, aes(x = x, y = y), color = 'red', shape = 18)+
   theme_bw()+
   coord_flip()+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
@@ -124,25 +149,33 @@ nutrient_clean %>%
         axis.title.y = element_text(family = 'inter', size = 14),
         plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
         axis.text.x = element_text(family = 'inter', size = 13),
-         axis.text.y = element_text(family = 'inter', size = 13))+
-  annotate("rect", xmin = 50, xmax = 70, ymin = 6, ymax = 9, 
-           size = .5, fill = 'lightgrey' ,alpha = 0.25)+
-  annotate('text', x = 68, y = 7.5, label = "Descending from the surface, the concentration of Nitrogen spikes to 9.36 µmol/kg. ", fontface = 'bold')+
+         axis.text.y = element_text(family = 'inter', size = 13),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(color = '#E5E4E2', size = 0.25),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(color = '#E5E4E2', size = 0.25))+
+  annotate("rect", xmin = 50, xmax = 70, ymin = 7, ymax = 10, 
+           size = .05, fill = 'lightgrey' ,alpha = 0.25)+
+  annotate('text', x = 66, y = 8.5, label = "Descending from the surface, the concentration of Nitrogen spikes to 9.36 µmol/kg. \nAt ~57.9 meters below surface level, the pH from this oceanographic sample was 8.06.", fontface = 'italic')+
   coord_flip()
 ```
 
 ```{r}
-nutrient_clean %>% 
+carbon_dist <- nutrient_clean %>% 
   ggplot()+
-  geom_histogram(aes(x = dissolved_c), bins = 40)
+  geom_histogram(aes(x = dissolved_c), bins = 40, fill = 'darkgrey')+
+  theme_classic()+
+  labs(x = 'Dissolved Carbon (µmol/kg)',
+       title = 'Distribution of Dissolved Carbon (µmol/kg)')+
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 
 nutrient_clean %>% 
   ggplot()+
   geom_line(aes(x = depth, y = dissolved_c), color = '#808080', size = 0.25)+
+  geom_point(aes(x = depth, y = dissolved_c), color = '#A7C7E7', alpha = 0.25)+
   theme_bw()+
-  coord_flip()+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
   coord_fixed(ratio = 5)+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10))+
@@ -156,3 +189,17 @@ nutrient_clean %>%
          axis.text.y = element_text(family = 'inter', size = 13))+
   coord_flip()
 ```
+
+### Reflection
+
+What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
+
+-   I found it really challenging using `ggtern()` the plotting itself was fairly new and I wasn't able to filter my dataset down to desired specifications for the plot to reflect that. I tried filtering each variable to see if maybe the reason the ternary plot wasn't showing the changes was because it needed to be done on all variables but it still was not working.
+
+What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven\'t covered in class that you\'ll be learning how to use for your visualizations?
+
+-   Ggtern is a package that has not been discussed in class, and I feel like once I find thorough enough documentation, I will be able to make the changes needed for this plot to answer my question.
+
+What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+
+-   I want to make sure that my plots are sophisticated enough but also digestible enough for a reader to comprehend and gain insight from these visualizations.
