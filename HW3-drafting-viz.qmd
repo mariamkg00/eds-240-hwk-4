@@ -16,7 +16,7 @@ My main question that the three visualizations aim to answer is : **How does dep
 
 The dataset used to answer my question comes from Hawaiian Ocean Timeseries (HOT) data. Their main objective is to record long-time series of physical and biogeochemical observations in the North Pacific subtropical gyre. The ALOHA station is located roughly 100 km north of Oahu. I will only be using one dataset as it contains all variables needed in order to answer my question. `Dissolved Organic Carbon` , `Dissolved Organic Nitrogen` and `Bottle CTD Oxygen` are both in µmol/kg. CTD stands for conductivity, temperature, and depth. The `pH` variable ranges from 1-14, and `Fluorometric Chlorophyll` is measured in µg/l.
 
-### Hand-drawn visualizations 
+### Hand-drawn visualizations
 
 ```{r}
 #| eval: true
@@ -63,9 +63,7 @@ nutrient_clean <- nutrient_data %>%
          dissolved_n = don_bottle_hot,
          ph = ph_bottle_hot,
          chlorophyll = chl_bottle_hot,
-         oxygen = oxygen_ctd_bottle_hot)  %>% 
-  filter(depth <= 80 & oxygen > 40)
-
+         oxygen = oxygen_ctd_bottle_hot) 
 
 
 
@@ -75,7 +73,7 @@ font_add_google(name = 'Josefin Sans', family = 'josefin')
 showtext_auto()
 nutrient_clean %>% 
   ggtern(aes(z = oxygen, x = dissolved_c, y = depth))+
-  geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 2)+
+  #geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 2)+
   theme_arrowlarge()+
   Tlab("Depth (meters)")+
   Rlab("Bottle Dissolved \nOxygen (µmol/kg)")+
@@ -83,12 +81,40 @@ nutrient_clean %>%
   labs(title = 'Ternary Plot of Oceanographic Samples in Hawaii',
        color = 'Chlorophyll \nConcentration')+
   theme(plot.title = element_text(family = 'josefin', size = 16, hjust = 0.5))
+  # lims(z = c(50,80),
+  #      y = c(0,60),
+  #      x = c(10,50))
+  # 
+  # scale_L_continuous(limits = c(10,75))+
+  # scale_R_continuous(limits = c(50,75))
 # labs(x = "Dissolved \nCarbon \n(µmol/kg)",
   #      y = 'Depth (meters)',
   #      z = 'Bottle Dissolved \nOxygen (µmol/kg)',
   #      title = 'Oceanographic Samples in Hawaii',
   #      subtitle = 'Observations shown in this ternary plot are of water samples from Niskin bottles mounted on the CTD rosette at HOT (Hawaii Ocean Time Series) \nstation ALOHA, the primary HOT sampling site.',
   #      tag = 'Data Source : Hawaii Ocean Time Series (HOT) https://hahana.soest.hawaii.edu/hot/')
+
+filtered_data <- nutrient_clean %>%
+  filter(oxygen >= 50 & oxygen <= 80 &
+         depth >= 0 & depth <= 60 &
+         dissolved_c >= 10 & dissolved_c <= 50)
+# Plot filtered data
+filtered_data %>%
+  ggtern(aes(z = oxygen, x = dissolved_c, y = depth)) +
+  geom_point(aes(color = chlorophyll), alpha = 0.5, shape = 2, size = 2) +
+  theme_arrowlarge() +
+  Tlab("Depth (meters)") +
+  Rlab("Bottle Dissolved \nOxygen (µmol/kg)") +
+  Llab("Dissolved Carbon\n(µmol/kg)") +
+  labs(title = 'Ternary Plot of Oceanographic Samples in Hawaii',
+       color = 'Chlorophyll \nConcentration') +
+  theme(plot.title = element_text(family = 'josefin', size = 16, hjust = 0.5))
+
+
+
+
+
+## have a plot where y is depth and other axis is concentration of o and c (make sure they are the same scale); plot them side by side, and let the shape/size of dots increase and decrease by pH; oxygen line you could make dashed and carbon line's; multiline plot ; add a dashed line representing average ; set up chunks (one depth to 5 and below (5.1 to 10m )) and everything that falls into here, you would have to average across the observations; or you could plot all the raw data and draw a trend line , explain the data wrangling you did to average it 
 ```
 
 My second visual will contain a depth profile with an inset graph being pH. The reason behind doing it this way is because these variables are in different units so they would not show if done otherwise.
@@ -125,6 +151,10 @@ nutrient_clean %>%
   right = unit(1, 'npc') - unit(1, 'cm'), 
   top = unit(1, 'npc') - unit(1, 'cm')
 )
+
+
+
+# flip the y axis so it starts on the top, for all the points, instead of the line, what if you did a scatter plot and then show a trend line; less light more photosynthetically efficient in order to capture light ; ph becomes more slightly acidic the deeper you go; no gridlines on either; chlorophyll extraction on photosynthetic microorganisms plot 
 ```
 
 My third visualization will include a highlighted rectangle showing the spike and highlighting the maximum Nitrogren concentration value found with a highlighted red point along with some text.
@@ -158,6 +188,10 @@ nutrient_clean %>%
            size = .05, fill = 'lightgrey' ,alpha = 0.25)+
   annotate('text', x = 66, y = 8.5, label = "Descending from the surface, the concentration of Nitrogen spikes to 9.36 µmol/kg. \nAt ~57.9 meters below surface level, the pH from this oceanographic sample was 8.06.", fontface = 'italic')+
   coord_flip()
+
+
+
+# flip the axis; for each of these regions, subset the data into ten meter blocks; boxplot and connect the boxplot data together, shows the range and connect the medians; plot the average and connect those lines together, overwhelming 
 ```
 
 ```{r}
@@ -196,7 +230,7 @@ What challenges did you encounter or anticipate encountering as you continue to 
 
 -   I found it really challenging using `ggtern()` the plotting itself was fairly new and I wasn't able to filter my dataset down to desired specifications for the plot to reflect that. I tried filtering each variable to see if maybe the reason the ternary plot wasn't showing the changes was because it needed to be done on all variables but it still was not working.
 
-What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven\'t covered in class that you\'ll be learning how to use for your visualizations?
+What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven't covered in class that you'll be learning how to use for your visualizations?
 
 -   Ggtern is a package that has not been discussed in class, and I feel like once I find thorough enough documentation, I will be able to make the changes needed for this plot to answer my question.
 

@@ -1,0 +1,35 @@
+My three plots:
+
+1.  time series of concentration of nitrogen and carbon vs depth (dual axis plot)
+
+```{r}
+coeff <- 10
+nutrient_clean %>% 
+  filter(depth <= 80) %>% 
+  ggplot()+
+  geom_line(aes(x = depth, y = dissolved_n))+
+  scale_x_reverse()+
+  geom_line(aes(x = depth, y = dissolved_c/coeff))+
+  coord_flip()+
+  scale_y_continuous(
+                     sec_axis = 'Dissolved Carbon')
+
+
+nutrient_clean_2 <- nutrient_clean %>% 
+  filter(depth <= 80)
+ggplot(nutrient_clean_2, aes(x = depth))+
+  geom_line(aes(y = dissolved_n), color = 'brown')+
+  geom_line(aes(y = dissolved_c/coeff), color = 'yellow')+
+  scale_y_continuous(name = 'Dissolved Nitrogen',
+                     sec.axis = sec_axis(~.*coeff, name = 'Dissolved Carbon'))+
+  scale_x_reverse()+
+  coord_fixed()+
+  coord_flip()
+```
+
+```{r}
+nutrient_clean %>% 
+  ggplot()+
+  geom_point(aes(y = depth, x = chlorophyll), color = '#8A9A5B', alpha = 0.75)+
+  scale_y_reverse()
+```

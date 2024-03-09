@@ -35,7 +35,7 @@ nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
 # only keeping variables of interest(depth, chlorophyll, oxygen, dissolved organic nitrogen )
 
 nutrient_clean <- nutrient_data %>% 
-  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot) %>% # selecting columns of interest
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot, oxygen_bottle_hot, NO2_NO3_bottle_hot) %>% # selecting columns of interest
   na.omit() %>% # removing NAs
   filter(depth <= 2000) %>% # only keeping observations with depth less than or equal to 3000 m below sea level
   rename(bottle_id = botid_HOT,
@@ -137,4 +137,37 @@ I am a bit uneasy of the thought of not truly knowing what each variable stands 
 nutrient_clean %>% 
   ggplot() +
   geom_histogram(aes(x = chlorophyll))
+```
+
+\`\`\`{r message = FALSE} \# data manipulation to keep units consistent
+
+# oxygen_bottle_hot -umol/kg
+
+# doc_bottle_hot - umol/kg
+
+# chl_bottle_hot - ug/l
+
+```{r}
+# ph 
+
+library(ggtern)
+library()
+font_add_google(name = 'Josefin Sans', family = 'josefin')
+showtext_auto()
+nutrient_clean %>% 
+  ggtern(aes(z = oxygen_bottle_hot, x = dissolved_c, y = depth))+
+  geom_point(aes(color = ph), alpha = 0.5)+
+  labs(x = "Dissolved \nCarbon \n(µmol/kg)",
+       y = 'Depth (meters)',
+       z = 'Bottle Dissolved \nOxygen (µmol/kg)',
+       title = 'Oceanographic Samples in Hawaii',
+       subtitle = 'Observations shown in this ternary plot are of water samples from Niskin bottles mounted on the CTD rosette at HOT (Hawaii Ocean Time Series) \nstation ALOHA, the primary HOT sampling site.',
+       tag = 'Data Source : Hawaii Ocean Time Series (HOT) https://hahana.soest.hawaii.edu/hot/')+
+  theme(axis.text.x = element_text(size = 12,family = 'josefin'),
+        legend.title = element_text(size = 12, family = 'josefin'),
+        axis.title.x =  element_text(size = 12,family = 'josefin'),
+        plot.title = element_text(size = 20, family = 'josefin', hjust = 0.5),
+        axis.text.y = element_text(size = 12, family = 'josefin'),
+        plot.subtitle = element_text(size = 14, family = 'josefin'),
+        plot.tag.position = 'bottom')
 ```
