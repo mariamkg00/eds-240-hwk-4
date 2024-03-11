@@ -1,8 +1,8 @@
 My three plots:
 
-1.  time series of concentration of nitrogen and carbon vs depth (dual axis plot)
+1.  depth profiles of concentration of nitrogen and carbon vs depth (dual axis plot)
 
-```{r include = FALSE, message = FALSE}
+```{r include = FALSE, message = FALSE, warning = FALSE}
 # loading libraries and fonts for plots
 library(tidyverse)
 library(showtext)
@@ -11,41 +11,104 @@ library(patchwork)
 library(sysfonts)
 library(ggtern)
 library(lubridate)
-
+library(rcartocolor)
 
 font_add_google(name = 'Josefin Sans', family = 'josefin')
 font_add_google(name = 'Inter', family = 'inter')
 
 showtext_auto()
+
+# loading in data
+nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
+
+# preliminary data cleaning
+nutrient_clean <- nutrient_data %>% 
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot, oxygen_ctd_bottle_hot, NO2_NO3_bottle_hot,temperature_ctd_bottle_hot) %>% # selecting columns of interest
+  na.omit() %>% # removing NAs
+  # only keeping observations with depth less than or equal to 80 m below sea level
+  rename(bottle_id = botid_HOT,
+         dissolved_c = doc_bottle_hot,
+         dissolved_n = don_bottle_hot,
+         ph = ph_bottle_hot,
+         chlorophyll = chl_bottle_hot,
+         oxygen = oxygen_ctd_bottle_hot,
+         temperature = temperature_ctd_bottle_hot)
 ```
 
-```{r}
+```{r message = FALSE}
 # scaling coefficient
 coeff <- 10
-
+# 999933 - Nitrogen 
+# 117733 - carbon
 
 # subsetting dataset to only have 80m below sea level
 nutrient_clean_2 <- nutrient_clean %>% 
-  filter(depth <= 80)
+  filter(depth <= 80) %>% 
+  mutate(avg_n = mean(dissolved_n),
+         avg_c = mean(dissolved_c),
+         depth_group = case_when(depth <= 20 ~ 'shallow',
+                                 depth <= 40 ~ 'medium',
+                                 depth <= 60 ~ 'medium deep',
+                                 depth <= 80 ~ 'deep'))
+
+avg_dissolved_n <- nutrient_clean_2$avg_n[1]
+
+avg_dissolved_c <- nutrient_clean_2$avg_c[1]
+
 ggplot(nutrient_clean_2, aes(x = depth))+
-  geom_line(aes(y = dissolved_n), color = "#999933")+
-  geom_line(aes(y = dissolved_c/coeff), color = "#117733")+
+  geom_line(aes(y = dissolved_n, color = "Nitrogen"))+
+  geom_hline(yintercept = avg_dissolved_n, color = "#CC6677",
+             linetype = 'dotted')+
+  geom_hline(yintercept = avg_dissolved_c/coeff, color = '#44AA99',
+             linetype = 'dotted')+
+  geom_line(aes(y = dissolved_c/coeff, color = "Carbon"))+
   scale_y_continuous(name = 'Dissolved Nitrogen (µmol/kg)',
-                     sec.axis = sec_axis(~.*coeff, name = 'Dissolved Carbon (µmol/kg)'))+
+                     sec.axis = sec_axis(~.*coeff, 
+                                         name = 'Dissolved Carbon (µmol/kg)'))+
+  scale_color_manual(values = c('Nitrogen' = '#999933',
+                                'Carbon' = '#117733'))+
   labs(x = 'Depth (m)',
-       title = 'Depth Profile Comparison of Dissolved Carbon and Nitrogen')+
+       title = 'Depth Profile Comparison of Dissolved Carbon and Nitrogen',
+       tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
   scale_x_reverse()+
-  coord_flip()+
   theme(aspect.ratio = 2,
         axis.title.x = element_text(family = 'inter', size = 14),
         axis.title.y = element_text(family = 'inter', size = 14),
-        plot.title = element_text(family = 'josefin', size = 18, hjust = .5))
+        plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "grey"),
+        axis.text.x= element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(family = 'inter', size = 14),
+        plot.tag.position = c(0.9999,0))+
+  annotate("text", x = 60, y = 4.5, 
+           label = 'Average concentration: 5.8 (µmol/kg)', 
+           angle = -90, size = 4)+
+  annotate("text", x= 60, y = 11.5, 
+           label = 'Average concentration: 95.1 (µmol/kg)', angle = -90, size = 4)+
+  coord_flip()
 
 ```
 
-```{r}
-nutrient_clean %>% 
-  ggplot()+
-  geom_point(aes(y = depth, x = chlorophyll), color = '#8A9A5B', alpha = 0.75)+
-  scale_y_reverse()
+2.  Depth profile of chlorophyll and its relationship to pH and dissolved oxygen
+
+```{r warning = FALSE}
+# scaling pH and dissolved oxygen to match chlorophyll 
+o_coeff <- 100
+ph_coeff <- 10
+
+
+cols <- c("#DDCC77", "#117733","#44AA99", "#999933")
+ggplot(data = nutrient_clean_2,aes(y= oxygen, x = depth))+
+  geom_boxplot(aes(fill = depth_group), alpha = 0.5, outlier.color = 'red', outlier.shape = 5)+
+  geom_point(aes(color = ph))+
+  scale_fill_manual(values = cols)+
+  scale_color_steps(high = '#E5D4E8', low = '#742881')+
+  scale_x_reverse()+
+  coord_flip()
+  
 ```
