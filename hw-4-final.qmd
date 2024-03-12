@@ -2,7 +2,26 @@ My three plots:
 
 1.  depth profiles of concentration of nitrogen and carbon vs depth (dual axis plot)
 
+Data wrangling and preparation:
+
+I chose to visualize data observations whose depths were greater than or less than 80 meters below sea level.
+
+The variables of interest in this visualization are :
+
+-   `botid_HOT` : unique water sensor ID
+
+-   `doc_bottle_hot` : Dissolved Organic Carbon (µmol/kg)
+
+-   `don_bottle_hot` : Dissolved Organic Nitrogen (µmol/kg)
+
+-   `ph_bottle_hot` : Bottle pH (1 is most acidic and 14 is most basic)
+
+-   `oxygen_ctd_bottle_hot` : Bottle CTD Oxygen (µmol/kg)
+
+-   `temperature_ctd_bottle_hot` : Bottle CTD Temperature (ITS- 90, a temperature scale based on the Celsius scale)
+
 ```{r include = FALSE, message = FALSE, warning = FALSE}
+
 # loading libraries and fonts for plots
 library(tidyverse)
 library(showtext)
@@ -24,7 +43,7 @@ nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
 
 # preliminary data cleaning
 nutrient_clean <- nutrient_data %>% 
-  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot, botid_HOT,ph_bottle_hot, oxygen_ctd_bottle_hot, NO2_NO3_bottle_hot,temperature_ctd_bottle_hot) %>% # selecting columns of interest
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot,ph_bottle_hot, oxygen_ctd_bottle_hot, NO2_NO3_bottle_hot,temperature_ctd_bottle_hot) %>% # selecting columns of interest
   na.omit() %>% # removing NAs
   # only keeping observations with depth less than or equal to 80 m below sea level
   rename(bottle_id = botid_HOT,
@@ -34,15 +53,13 @@ nutrient_clean <- nutrient_data %>%
          chlorophyll = chl_bottle_hot,
          oxygen = oxygen_ctd_bottle_hot,
          temperature = temperature_ctd_bottle_hot)
-```
 
-```{r message = FALSE}
 # scaling coefficient
 coeff <- 10
 # 999933 - Nitrogen 
 # 117733 - carbon
 
-# subsetting dataset to only have 80m below sea level
+# subsetting dataset to only have 80m below sea level; categorizing depths in groups for box plot using case_when
 nutrient_clean_2 <- nutrient_clean %>% 
   filter(depth <= 80) %>% 
   mutate(avg_n = mean(dissolved_n),
@@ -51,46 +68,89 @@ nutrient_clean_2 <- nutrient_clean %>%
                                  depth <= 40 ~ 'medium',
                                  depth <= 60 ~ 'medium deep',
                                  depth <= 80 ~ 'deep'))
-
+# saving the average value of dissolved nitrogen as a variable
 avg_dissolved_n <- nutrient_clean_2$avg_n[1]
 
+# saving the average value of dissolved carbon as a variable 
 avg_dissolved_c <- nutrient_clean_2$avg_c[1]
+```
 
-ggplot(nutrient_clean_2, aes(x = depth))+
-  geom_line(aes(y = dissolved_n, color = "Nitrogen"))+
-  geom_hline(yintercept = avg_dissolved_n, color = "#CC6677",
-             linetype = 'dotted')+
-  geom_hline(yintercept = avg_dissolved_c/coeff, color = '#44AA99',
-             linetype = 'dotted')+
-  geom_line(aes(y = dissolved_c/coeff, color = "Carbon"))+
+My first plot is a visual that can be used in a report or technical documentation. I chose to plot using dual axes in order for the reader to capture the different scalings of the variables used in the graph. I chose to incorporate the horizontal lines in order to help center the reader's attention on the stagnant average concentration of both values. I included the use of color blind friendly colors, along with
+
+```{r message = FALSE}
+#..............................first plot........................................
+
+
+ggplot(nutrient_clean_2, aes(x = depth)) +
+  # first line plot is of dissolved nitrogen
+  geom_line(aes(y = dissolved_n, color = "Nitrogen")) +
+  # adding a horizontal dotted line representing the average dissolved nitrogen       value
+  geom_hline(yintercept = avg_dissolved_n,
+             color = "lightgray",
+             linetype = 'dotted') +
+  # adding a horizontal dotted line representing the average dissolved carbon         value
+  geom_hline(
+    yintercept = avg_dissolved_c / coeff,
+    color = 'lightgray',
+    linetype = 'dotted'
+  ) +
+  # second line plot is of dissolved carbon divided by the coefficient in order       for it to show on the same plane as dissolved nitrogen
+  geom_line(aes(y = dissolved_c / coeff, color = "Carbon")) +
+  # specifying the two axes and labeling
   scale_y_continuous(name = 'Dissolved Nitrogen (µmol/kg)',
-                     sec.axis = sec_axis(~.*coeff, 
-                                         name = 'Dissolved Carbon (µmol/kg)'))+
+                     sec.axis = sec_axis( ~ . * coeff,
+                                          name = 'Dissolved Carbon (µmol/kg)')) +
+  # using color blind friendly colors to distinguish the different lines
   scale_color_manual(values = c('Nitrogen' = '#999933',
-                                'Carbon' = '#117733'))+
+                                'Carbon' = '#117733')) +
+  # adding x axis label, title, and citation
   labs(x = 'Depth (m)',
        title = 'Depth Profile Comparison of Dissolved Carbon and Nitrogen',
-       tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
-  scale_x_reverse()+
-  theme(aspect.ratio = 2,
-        axis.title.x = element_text(family = 'inter', size = 14),
-        axis.title.y = element_text(family = 'inter', size = 14),
-        plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
-        panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "grey"),
-        axis.text.x= element_text(size = 14),
-        axis.text.y = element_text(size = 14),
-        legend.title = element_blank(),
-        legend.text = element_text(family = 'inter', size = 14),
-        plot.tag.position = c(0.9999,0))+
-  annotate("text", x = 60, y = 4.5, 
-           label = 'Average concentration: 5.8 (µmol/kg)', 
-           angle = -90, size = 4)+
-  annotate("text", x= 60, y = 11.5, 
-           label = 'Average concentration: 95.1 (µmol/kg)', angle = -90, size = 4)+
+       tag = "Data Source: Hawaiian Ocean Time-series (HOT)") +
+  # reversing the x axis values so that the top is 0 and the bottom is 80
+  scale_x_reverse() +
+  # adjusting the x and y axis title fonts and sizes
+  # removing the legend title, panel border, panel grid major and minor lines
+  # specifying the tag position for the citation, specifying legend text
+  theme(
+    aspect.ratio = 2,
+    axis.title.x = element_text(family = 'inter', size = 14),
+    axis.title.y = element_text(family = 'inter', size = 14),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey"),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_blank(),
+    legend.text = element_text(family = 'inter', size = 14),
+    plot.tag.position = c(0.9999, 0),
+    legend.key = element_blank()
+  ) +
+  # adding annotations to specify average concentrations for the horizontal lines     generated 
+  annotate(
+    "text",
+    x = 60,
+    y = 4.5,
+    label = 'Average concentration: 5.8 (µmol/kg)',
+    angle = -90,
+    size = 4
+  ) +
+  annotate(
+    "text",
+    x = 60,
+    y = 11.5,
+    label = 'Average concentration: 95.1 (µmol/kg)',
+    angle = -90,
+    size = 4
+  ) +
+  # flipping axes
   coord_flip()
 
 ```
@@ -98,75 +158,173 @@ ggplot(nutrient_clean_2, aes(x = depth))+
 2.  Depth profile of chlorophyll and its relationship to pH and dissolved oxygen
 
 ```{r warning = FALSE, message = FALSE}
-# scaling pH and dissolved oxygen to match chlorophyll 
+# scaling pH and dissolved oxygen to match chlorophyll
 o_coeff <- 100
 ph_coeff <- 10
 
 
-cols <- c('#edf8e9', '#bae4b3',"#74c476", '#238b45')
-ggplot(data = nutrient_clean_2,aes(y= oxygen, x = depth))+
-  geom_boxplot(aes(fill = depth_group), alpha = 0.75, outlier.color =  "#54278f", outlier.shape = 17, outlier.size = 2)+
-  geom_point(aes(x = depth, y = oxygen), alpha = 0.25)+
-  scale_fill_manual(values = rev(cols),
-                    labels = c('(60 < depth <80) ',
-                                 '(40 < depth < 60)',
-                                 '(20 < depth < 40)',
-                                 ' (20 < depth < 0)'))+
-  scale_x_reverse()+
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 8))+
-  labs(fill = 'Water Depth (m)',
-       y = 'Bottle CTD Oxygen (µmol/kg)',
-       x = 'Depth (m)',
-       title = 'Oxygen Concentration and its Relationship \nto Depth and pH within the Epipelagic Zone',
-       tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
-  coord_flip()+
-  theme(axis.title.x = element_text(family = 'inter', size = 14, 
-                                    margin = margin(10,0,0,0)),
-        axis.title.y = element_text(family = 'inter', size = 14,
-                                    margin = margin(0,10,10,0)),
-        plot.title = element_text(family = 'josefin', size = 18, hjust = .5, lineheight = 1),
-        legend.title = element_text(family = 'inter', size = 16, hjust = .5),
-        legend.text = element_text(family = 'inter', size = 12),
-        axis.text = element_text(family = 'inter', size = 12),
-        legend.key = element_blank(),
-        legend.background = element_rect(linewidth = 0.05, color = 'black'),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "darkgrey"),
-        plot.tag.position = c(230, 99))+
-  annotate('text', x = 24, y = 166, label = 'Outliers are represented with a purple triangle.', hjust = 0)+
-  annotate( 'text',x = 10, y = 166, label = 'Oxygen concentration was measured using CTD sensors,\n which stands for conductivity, temperature, and density.', hjust = 0)+
-  theme(text = element_text(lineheight = 2))
-  
+cols <- c('#edf8e9', '#bae4b3', "#74c476", '#238b45')
+ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
+  geom_boxplot(
+    aes(fill = depth_group),
+    alpha = 0.75,
+    outlier.color =  "#54278f",
+    outlier.shape = 17,
+    outlier.size = 2
+  ) +
+  geom_point(aes(x = depth, y = oxygen), alpha = 0.25) +
+  scale_fill_manual(
+    values = rev(cols),
+    labels = c(
+      '(60 < depth <80) ',
+      '(40 < depth < 60)',
+      '(20 < depth < 40)',
+      ' (20 < depth < 0)'
+    )
+  ) +
+  scale_x_reverse() +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 8)) +
+  labs(
+    fill = 'Water Depth (m)',
+    y = 'Bottle CTD Oxygen (µmol/kg)',
+    x = 'Depth (m)',
+    title = 'Oxygen Concentration and its Relationship \nto Depth and pH within the Epipelagic Zone',
+    tag = "Data Source: Hawaiian Ocean Time-series (HOT)"
+  ) +
+  coord_flip() +
+  theme(
+    axis.title.x = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(10, 0, 0, 0)
+    ),
+    axis.title.y = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(0, 10, 10, 0)
+    ),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5,
+      lineheight = 1,
+      margin = margin(0, 0, 10, 0)
+    ),
+    legend.title = element_text(
+      family = 'inter',
+      size = 16,
+      hjust = .5
+    ),
+    legend.text = element_text(family = 'inter', size = 12),
+    axis.text = element_text(family = 'inter', size = 12),
+    legend.key = element_blank(),
+    legend.background = element_rect(linewidth = 0.05, color = 'black'),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "darkgrey"),
+    plot.tag.position = 'bottom',
+    plot.tag = element_text(
+      family = 'inter',
+      size = 10,
+      face = 'italic',
+      margin = margin(10, 0, 0, 0)
+    )
+  ) +
+  annotate(
+    'text',
+    x = 24,
+    y = 166,
+    label = 'Outliers are represented with a purple triangle.',
+    hjust = 0
+  ) +
+  annotate(
+    'text',
+    x = 10,
+    y = 166,
+    label = 'Oxygen concentration was measured using CTD sensors,\n which stands for conductivity, temperature, and density.',
+    hjust = 0
+  ) +
+  theme(text = element_text(margin = margin(0.5,0,0,0)))
+
 ```
 
 3.  line graph with element_rect()
 
 ```{r}
-
+arrow_df <- data.frame(x1 = 45,
+                       y1 = 8,
+                       x2 = 56,
+                       y2 = 8.76)
 point <- data.frame(y = 9.36, x = 57.9)
-ggplot(data = nutrient_clean_2)+
-  geom_point(aes(x = depth, y = dissolved_n, size = temperature),
-             color = 'seagreen',  alpha = 0.5)+
-  geom_point(data = point, aes(x = x, y = y), color = 'red', size = 4, alpha = 0.25)+
-   labs(x = 'Depth (meters)',
+ggplot(data = nutrient_clean_2) +
+  geom_point(
+    aes(x = depth, y = dissolved_n, size = temperature),
+    color = '#09555c',
+    alpha = 0.5
+  ) +
+  geom_point(
+    data = point,
+    aes(x = x, y = y),
+    color = 'red',
+    size = 4,
+    alpha = 0.45
+  ) +
+  labs(x = 'Depth (meters)',
        y = ' Concentration (µmol/kg)',
        title = 'Depth Profile of Dissolved Nitrogen',
-       size = 'Temperature (°C)')+
-  scale_x_reverse()+
-  scale_y_continuous(breaks = seq(4,10,1))+
-  coord_flip()+
-  geom_smooth(aes(x = depth, y = dissolved_n),se = FALSE, color = 'black', linewidth = 0.45)+
-  theme_bw()+
-  theme(axis.title.x = element_text(family = 'inter', size = 14),
-        axis.title.y = element_text(family = 'inter', size = 14),
-        plot.title = element_text(family = 'josefin', size = 18, hjust = .5),
-        axis.text.x = element_text(family = 'inter', size = 13),
-         axis.text.y = element_text(family = 'inter', size = 13),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(color = '#E5E4E2', size = 0.25),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.major.x = element_line(color = '#E5E4E2', size = 0.25))+
-    annotate("rect", xmin = 50, xmax = 70, ymin = 8.75, ymax = 10, 
-           size = .05, fill = 'lightgrey' ,alpha = 0.25)+
-  annotate('text', x = 76, y = 8.80, label = "Descending from the surface, the concentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.", fontface = 'italic', hjust = 0.5)
+       size = 'Temperature (°C)') +
+  scale_x_reverse() +
+  scale_y_continuous(breaks = seq(4, 10, 1)) +
+  coord_flip() +
+  geom_smooth(
+    aes(x = depth, y = dissolved_n),
+    se = FALSE,
+    color = 'black',
+    linewidth = 0.45
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(family = 'inter', size = 14),
+    axis.title.y = element_text(family = 'inter', size = 14),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    axis.text.x = element_text(family = 'inter', size = 13),
+    axis.text.y = element_text(family = 'inter', size = 13),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = '#E5E4E2', size = 0.25),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_line(color = '#E5E4E2', size = 0.25),
+    plot.background = element_rect(fill = "#c9e9f6"),
+    legend.text = element_text(family = 'inter', size = 12),
+    legend.background = element_rect(fill = "#c9e9f6"),
+    legend.key = element_blank()
+  ) +
+  geom_curve(aes(
+    x = x1,
+    y = y1,
+    xend = x2,
+    yend = y2
+  ),
+  data = arrow_df,
+  arrow = arrow(length = unit(0.03, 'npc'))) +
+  annotate(
+    "rect",
+    xmin = 50,
+    xmax = 70,
+    ymin = 8.75,
+    ymax = 10,
+    size = .05,
+    fill = 'lightgrey' ,
+    alpha = 0.25
+  ) +
+  annotate(
+    'text',
+    x = 36,
+    y = 9.05,
+    label = "Descending from the surface, the concentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
+    fontface = 'italic',
+    hjust = 0.5
+  )
 ```
