@@ -1,0 +1,427 @@
+---
+title: "Homework Assignment #4"
+author: "Mariam Garcia"
+date: 2024-03-12
+toc: true
+format: 
+  html:
+    code-fold: true
+    code-summary: "How I did it:"
+editor_options: 
+  chunk_output_type: console
+---
+
+### Objective
+
+For my final assignment, I chose to generate three different visuals which answer the same question for different audiences.
+
+The question I will be answering differently with my graphs is : "**What is the effect of depth on water characteristics within the Epipelagic Zone in Hawaii?"**
+
+Each graph will answer the question, but using different variables, as this dataset contained various characteristics to choose from.
+
+My three plots:
+
+1.  Depth profiles of concentration of nitrogen and carbon vs depth \[dual axis plot\]
+2.  Box plot by depth group of oxygen conentration \[box plot\]
+3.  Depth profile of Dissolved Nitrogen with respect to Temperature \[scatter plot\]
+
+#### About the data
+
+I originally used this data set for a previous research project for the University of Washington School of Oceanography. I decided to use this data set in order to grasp and visualize the different relationships or correlations. Each observation is a different sample, represented by the column bottle_id. The dataset\'s maximum depth observation was around 4000 m below sea level, but I chose to focus mainly on where depth was less than or equal to 200 m because there is still sunlight such that photosynthesis can still take place. The data set uses various sensors for each observation, some being CTD (conductivity, temperature, and density), others being Bottle. The dataset\'s first observation starts in 1988 and has data available until 2022. The site location for sampling took place at HOT station ALOHA ( 22.75 N, 158.00 W).
+
+Moreover, this data set contains oceanographic characteristics with respect to depth and gain an understanding of how depth plays a role in the measurement of Oxygen, Dissolved Carbon, and Dissolved Nitrogen. I chose Oxygen as it is required for marine plant respiration. Dissolved Carbon is important to consider as it serves as a primary food source for various marine food chains.
+
+For more details or if you want to further explore the data, it can be accessed [here](https://simonscmap.com/catalog/datasets/HOT_Bottle_ALOHA)!
+
+If you would like to see my progress in assessing which visuals to use, please take a peak at my Github [repository](https://github.com/mariamkg00/garcia-eds-240-hwk-4).
+
+#### Data preparation:
+
+I chose to visualize data observations whose depths were greater than or less than 80 meters below sea level.
+
+The variables of interest in this visualization are :
+
+-   `botid_HOT` : unique water sensor ID
+
+-   `doc_bottle_hot` : Dissolved Organic Carbon (µmol/kg)
+
+-   `don_bottle_hot` : Dissolved Organic Nitrogen (µmol/kg)
+
+-   `ph_bottle_hot` : Bottle pH (1 is most acidic and 14 is most basic)
+
+-   `oxygen_ctd_bottle_hot` : Bottle CTD Oxygen (µmol/kg)
+
+-   `temperature_ctd_bottle_hot` : Bottle CTD Temperature (ITS- 90, a temperature scale based on the Celsius scale)
+
+### Data Wrangling
+
+```{r include = FALSE, message = FALSE, warning = FALSE}
+
+# loading libraries and fonts for plots
+library(tidyverse)
+library(showtext)
+library(here)
+library(patchwork)
+library(sysfonts)
+library(ggtern)
+library(lubridate)
+library(rcartocolor)
+library(scales)
+library(ggridges)
+font_add_google(name = 'Josefin Sans', family = 'josefin')
+font_add_google(name = 'Inter', family = 'inter')
+
+showtext_auto()
+
+# loading in data
+nutrient_data <- read_csv(here::here('data','HOT_Bottle_ALOHA.csv'))
+
+# preliminary data cleaning
+nutrient_clean <- nutrient_data %>% 
+  select(botid_HOT,time,doc_bottle_hot,don_bottle_hot,depth,chl_bottle_hot,ph_bottle_hot, oxygen_ctd_bottle_hot, NO2_NO3_bottle_hot,temperature_ctd_bottle_hot) %>% # selecting columns of interest
+  na.omit() %>% # removing NAs
+  # only keeping observations with depth less than or equal to 80 m below sea level
+  rename(bottle_id = botid_HOT,
+         dissolved_c = doc_bottle_hot,
+         dissolved_n = don_bottle_hot,
+         chlorophyll = chl_bottle_hot,
+         oxygen = oxygen_ctd_bottle_hot,
+         temperature = temperature_ctd_bottle_hot)
+
+# scaling coefficient
+coeff <- 10
+# 999933 - Nitrogen 
+# 117733 - carbon
+
+# subsetting dataset to only have 80m below sea level; categorizing depths in groups for box plot using case_when
+nutrient_clean_2 <- nutrient_clean %>% 
+  filter(depth <= 80) %>% 
+  mutate(avg_n = mean(dissolved_n),
+         avg_c = mean(dissolved_c),
+         depth_group = case_when(depth <= 20 ~ 'shallow',
+                                 depth <= 40 ~ 'medium',
+                                 depth <= 60 ~ 'medium deep',
+                                 depth <= 80 ~ 'deep'))
+# saving the average value of dissolved nitrogen as a variable
+avg_dissolved_n <- nutrient_clean_2$avg_n[1]
+
+# saving the average value of dissolved carbon as a variable 
+avg_dissolved_c <- nutrient_clean_2$avg_c[1]
+```
+
+### First plot (Technical)
+
+My first plot is a visual that can be used in a report or technical documentation. I chose to plot using dual axes in order for the reader to capture the different scalings of the variables used in the graph. I chose to incorporate the horizontal lines in order to help center the reader's attention on the stagnant average concentration of both values. I included the use of color blind friendly colors, along with cohesive colors in order to make the visual more appealing and clean.
+
+```{r message = FALSE}
+#| code-summary: "How I did it:"
+
+#| fig-alt: "Dual axis plot depicting the concentration of both dissolved Nitrogen and dissolved Carbon, as it shows that Nitrogen has two significant spikes in concentration near 20 meters below sea level and 60 meters below sea level, while also including two horizontal dotted lines showing the average concentration of both components throughout so that the reader is able to make comparisons. "
+#........................first plot (technical report)................
+
+
+ggplot(nutrient_clean_2, aes(x = depth)) +
+  # first line plot is of dissolved nitrogen
+  geom_line(aes(y = dissolved_n, color = "Nitrogen")) +
+  # adding a horizontal dotted line representing the average dissolved nitrogen       value
+  geom_hline(yintercept = avg_dissolved_n,
+             color = "lightgray",
+             linetype = 'dotted') +
+  # adding a horizontal dotted line representing the average dissolved carbon         value
+  geom_hline(
+    yintercept = avg_dissolved_c / coeff,
+    color = 'lightgray',
+    linetype = 'dotted'
+  ) +
+  # second line plot is of dissolved carbon divided by the coefficient in order       for it to show on the same plane as dissolved nitrogen
+  geom_line(aes(y = dissolved_c / coeff, color = "Carbon")) +
+  # specifying the two axes and labeling
+  scale_y_continuous(name = 'Dissolved Nitrogen (µmol/kg)',
+                     sec.axis = sec_axis( ~ . * coeff,
+                                          name = 'Dissolved Carbon (µmol/kg)')) +
+  # using color blind friendly colors to distinguish the different lines
+  scale_color_manual(values = c('Nitrogen' = '#999933',
+                                'Carbon' = '#117733')) +
+  # adding x axis label, title, and citation
+  labs(x = 'Depth (m)',
+       title = 'Depth Profile Comparison of Dissolved Carbon and Nitrogen',
+       tag = "Data Source: Hawaiian Ocean Time-series (HOT)") +
+  # reversing the x axis values so that the top is 0 and the bottom is 80
+  scale_x_reverse() +
+  # adjusting the x and y axis title fonts and sizes
+  # removing the legend title, panel border, panel grid major and minor lines
+  # specifying the tag position for the citation, specifying legend text
+  theme(
+    aspect.ratio = 2,
+    axis.title.x = element_text(family = 'inter', size = 14),
+    axis.title.y = element_text(family = 'inter', size = 14),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey"),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_blank(),
+    legend.text = element_text(family = 'inter', size = 14),
+    plot.tag.position = c(0.9999, 0),
+    legend.key = element_blank()
+  ) +
+  # adding annotations to specify average concentrations for the horizontal lines     generated 
+  annotate(
+    "text",
+    x = 60,
+    y = 4.5,
+    label = 'Average concentration: 5.8 (µmol/kg)',
+    angle = -90,
+    size = 4
+  ) +
+  annotate(
+    "text",
+    x = 60,
+    y = 11.5,
+    label = 'Average concentration: 95.1 (µmol/kg)',
+    angle = -90,
+    size = 4
+  ) +
+  # flipping axes
+  coord_flip()
+
+```
+
+### Second plot (Presentation) 
+
+My second plot is a box plot by depth group that can be included in a presentation. I chose to use sequential colors as depth increases so it resonated with the reader and would be more intuitive. I also opted to include some text for what exactly `Bottle CTD` is, as it may not be known by every environmental science professional.
+
+```{r warning = FALSE, message = FALSE}
+#| code-summary: "How I did it:"
+
+#| fig-alt: "A stacked boxplot demonstrating the relationship between depth and Bottle CTD Oxygen across four subgroups of depth, with its earliest values being recorded in 1988 and its latest value being recorded in 2022, where the median value of the first depth subgroup is higher than the second and third depth subgroup, and the median of the last depth subgroup, on average, has the highest median value of Bottle CTD Oxygen. Oxygen was measured using CTD sensors, which stands for conductivity, temperature, and density. CTD sensors are critical instruments in measuring oceanographic samples."
+
+# custom color palette for depth subgroup (made sure they were color-blind friendly )
+cols <- c('#edf8e9', '#bae4b3', "#74c476", '#238b45')
+
+# generating plot 
+ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
+  # adding a boxplot for each subgroup of depth in the nutrient_clean_2 dataset
+  geom_boxplot(
+    aes(fill = depth_group),
+    alpha = 0.75,
+    outlier.color =  "#54278f", # filling the outlier with a stand-out color 
+    outlier.shape = 17, # putting the outlier as a triangle
+    outlier.size = 2 # specifying outlier size 
+  ) +
+  # adding a scatterplot layer with same variables 
+  geom_point(aes(x = depth, y = oxygen), alpha = 0.25) +
+  scale_fill_manual(
+    values = rev(cols),
+    labels = c(
+      '(60 < depth <80) ',
+      '(40 < depth < 60)',
+      '(20 < depth < 40)',
+      ' (20 < depth < 0)'
+    )
+  ) +
+  # reversing the x axis scale so that the top most number is 0 and the bottom        most number is 80 
+  scale_x_reverse() +
+  # adding more breaks in the y axis 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 8)) +
+  # adding a label for the legend, x&y axis, title, and citation (tag)
+  labs(
+    fill = 'Water Depth (m)',
+    y = 'Bottle CTD Oxygen (µmol/kg)',
+    x = 'Depth (m)',
+    title = 'Oxygen Concentration and Temperature and its Relationship \nto Depth within the Epipelagic Zone',
+    tag = "Data Source: Hawaiian Ocean Time-series (HOT)"
+  ) +
+  # flipping x and y axes
+  coord_flip() +
+  # customizing x and y axis title font, margin, and size
+  # customizing plot title font, margin, and size 
+  # customizing legend title font and size 
+  # removing panel background and changing axis line to grey 
+  theme(
+    axis.title.x = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(10, 0, 0, 0)
+    ),
+    axis.title.y = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(0, 10, 10, 0)
+    ),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5,
+      lineheight = 1,
+      margin = margin(0, 0, 10, 0)
+    ),
+    legend.title = element_text(
+      family = 'inter',
+      size = 16,
+      hjust = .5
+    ),
+    legend.text = element_text(family = 'inter', size = 12),
+    axis.text = element_text(family = 'inter', size = 12),
+    legend.key = element_blank(),
+    legend.background = element_rect(linewidth = 0.05, color = 'black'),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "darkgrey"),
+    plot.tag.position = 'bottom',
+    plot.tag = element_text(
+      family = 'inter',
+      size = 10,
+      face = 'italic',
+      margin = margin(10, 0, 0, 0)
+    )
+  ) +
+  # plot annotations 
+  annotate(
+    'text',
+    x = 24,
+    y = 160,
+    label = 'Outliers are represented with a purple triangle.',
+    hjust = 0
+  ) +
+  annotate(
+    'text',
+    x = 10,
+    y = 160,
+    label = 'Oxygen concentration was measured using CTD sensors,\n which stands for conductivity, temperature, and density.', clip = 'off',
+    hjust = 0
+  ) +
+  theme(text = element_text(margin = margin(0.5,0,0,0)))
+
+```
+
+### Third plot (General Audience)
+
+I chose to generate a simpler depth profile of Dissolved Nitrogen and made the size of each observation/point according to the temperature. Instead of filling by temperature, I opted to use size as it is more intuitive and digestible that the bigger points are hotter, and the smaller points are colder.
+
+```{r warning = FALSE, message =FALSE}
+#| code-summary: "How I did it:"
+#| fig-alt: "A scatterplot depicting the depth profile of Dissolved Nitrogen which shows a general stable relationship with depth, with an outlier spiking its concentration at around 57 meters below sea level, and the size of the point relates to the temperature value for each observation."
+
+# specifying arrow for geom_curve 
+arrow_df <- data.frame(x1 = 45,
+                       y1 = 8,
+                       x2 = 56,
+                       y2 = 8.76)
+# making a data frame for the highest value of nitrogen 
+point <- data.frame(y = 9.36, x = 57.9)
+ggplot(data = nutrient_clean_2) +
+  geom_point(
+    aes(x = depth, y = dissolved_n, size = temperature),
+    color = '#09555c',
+    alpha = 0.5
+  ) +
+  geom_point(
+    data = point,
+    aes(x = x, y = y),
+    color = 'red',
+    size = 4,
+    alpha = 0.45
+  ) +
+  labs(x = 'Depth (meters)',
+       y = ' Concentration (µmol/kg)',
+       title = 'Depth Profile of Dissolved Nitrogen',
+       size = 'Temperature (°C)',
+       tag = "Data Source: Hawaiian Ocean Time-series (HOT)") +
+  scale_x_reverse() +
+  scale_y_continuous(breaks = seq(4, 10, 1)) +
+  coord_flip() +
+  geom_smooth(
+    aes(x = depth, y = dissolved_n),
+    se = FALSE,
+    color = 'black',
+    linewidth = 0.45
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(family = 'inter', size = 14, 
+                                margin = margin(10, 0, 10, 0)),
+    axis.title.y = element_text(family = 'inter', size = 14,
+                                margin = margin(0, 10, 10, 0)),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    axis.text.x = element_text(family = 'inter', size = 13),
+    axis.text.y = element_text(family = 'inter', size = 13),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = '#E5E4E2', size = 0.25),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_line(color = '#E5E4E2', size = 0.25),
+    plot.background = element_rect(fill = "#c9e9f6"),
+    legend.text = element_text(family = 'inter', size = 12),
+    legend.background = element_rect(fill = "#c9e9f6"),
+    legend.key = element_blank(),
+    plot.tag.position = 'bottom',
+    plot.tag = element_text(
+      family = 'inter',
+      size = 10,
+      face = 'italic',
+      margin = margin(10, 0, 0, 0)
+    )
+  ) +
+  geom_curve(aes(
+    x = x1,
+    y = y1,
+    xend = x2,
+    yend = y2
+  ),
+  data = arrow_df,
+  arrow = arrow(length = unit(0.03, 'npc'))) +
+  annotate(
+    "rect",
+    xmin = 50,
+    xmax = 70,
+    ymin = 8.75,
+    ymax = 10,
+    size = .05,
+    fill = 'lightgrey' ,
+    alpha = 0.25
+  ) +
+  annotate(
+    'text',
+    x = 36,
+    y = 9.05,
+    label = "Descending from the surface, the concentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
+    fontface = 'italic',
+    hjust = 0.5
+  )
+```
+
+### My Approach
+
+1.  *Graphic form:* I wanted to make sure that each of my graphs had the perfect balance of readability and complexity. For that reason, my first graph I chose a dual axis plot so that I could assess the relationship of depth on both Carbon and Nitrogen, and visualize the relationship between the two. I chose to use this form of visualization because both variables were of the same units but different scaling, and I wanted to make sure that the axes were legible enough so that the reader could understand which axis belonged to which component. 
+
+    -   My second graph is a box of Oxygen concentration and whisker plot stacked with a scatter plot with the fill represented by pH value. I opted to visualize this relationship so that the median value of Oxygen can be clearly differentiated between the different subgroups of water depths I created. I also chose to make sure the outliers stood out by marking it with a different shape and color, so that the reader would be able to distinguish between a normal pH value and a not so normal one. 
+
+    -   My third and final graph was a scatter plot of the depth profile of Nitrogen, with the size of the points representing temperature. This plot was intended for an audience who may not have coding experience or expertise in this field, so I opted for visualization that would be the most comprehensive. Moreover, I also added a line of best fit to represent the general relationship between the two variables.
+
+2.  *Text*: I made sure that for all my titles that the font was different than the axis labels so that it draws attention to the reader in helping them understand what exactly they are looking at. I made sure to add annotations, especially in my third graph, so that the reader is able to take home the message intended for the audience. I also added alt text for my third plot so that it could be as accessible as possible.
+
+3.  *Theme*: I made sure to research and implement key takeaways from lecture and apply them to my graphs in order to steer away from subpar visuals. I made sure that my axis titles were the same font and size, gave my axis title some wiggle room, and removed grid lines when I saw fit as it can add unwarranted commotion to the graph. I also made sure to modify the axis text size as the default may be too small to see without zooming in, and I wanted to make sure that my graphs were legible and had breathing room.
+
+4.  *Colors*: I used color blind friendly combinations and palettes in order to stress accessibility while also ensuring that each group was represented in the best way.
+
+5.  *Typography*: I chose fonts Inter and Josefin as they appeared to be the cleanest and neatest fonts to use together.
+
+6.  *General design:* in terms of group design, I did some data wrangling on the subset so that certain depths were categorized accordingly. This decision helped me group summary statistics in a box plot which then helped me visualize said statistics. For my annotations, I made sure that the spacing was adequate. I added an average line in which I coded in the average values and rotated the text so it fit nicely right above the dashed line.
+
+7.  *Contextualizing data:* I made sure to include annotations to my first and second graph in  order to drive home the main message behind the plot I generated. I also wanted to give some context as to what type of sampling took place for oxygen so I included some text about it to help inform the reader. I also included the range for each subgroup of depth made for the box plot so that the reader could understand what each group\'s range was.
+
+8.  *My main message* behind these visuals was that the relationships between these oceanographic characteristics are complex and, with the help of visualization, can help digest it in a way that is understandable and clear. I chose three different types of visuals to drive home the point that data can be visualized in vastly different ways, and with some being more complex than others, it goes a long way to add context and supportive text.
+
+9.  *Accessibility*: I spent a good amount of time trying to find colors that were color blind friendly, and made sure to make the font big enough so that it can be easily legible for all groups. I also added alt text for all of my graphs in order to ensure that anyone can grasp the message and take away key information from the graphs.
+
+10. *DEI lens:* I made sure to incorporate alt text for each one of my graphs so that anyone who may have a visual impairment can still take away key points from the graphs made, and I made sure to be as descriptive as possible with it so that each component was accounted for.
