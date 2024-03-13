@@ -27,7 +27,7 @@ My three plots:
 
 #### About the data
 
-I originally used this data set for a previous research project for the University of Washington School of Oceanography. I decided to use this data set in order to grasp and visualize the different relationships or correlations. Each observation is a different sample, represented by the column bottle_id. The dataset\'s maximum depth observation was around 4000 m below sea level, but I chose to focus mainly on where depth was less than or equal to 200 m because there is still sunlight such that photosynthesis can still take place. The data set uses various sensors for each observation, some being CTD (conductivity, temperature, and density), others being Bottle. The dataset\'s first observation starts in 1988 and has data available until 2022. The site location for sampling took place at HOT station ALOHA ( 22.75 N, 158.00 W).
+I originally used this data set for a previous research project for the University of Washington School of Oceanography. I decided to use this data set in order to grasp and visualize the different relationships or correlations. Each observation is a different sample, represented by the column bottle_id. The dataset's maximum depth observation was around 4000 m below sea level, but I chose to focus mainly on where depth was less than or equal to 200 m because there is still sunlight such that photosynthesis can still take place. The data set uses various sensors for each observation, some being CTD (conductivity, temperature, and density), others being Bottle. The dataset's first observation starts in 1988 and has data available until 2022. The site location for sampling took place at HOT station ALOHA ( 22.75 N, 158.00 W).
 
 Moreover, this data set contains oceanographic characteristics with respect to depth and gain an understanding of how depth plays a role in the measurement of Oxygen, Dissolved Carbon, and Dissolved Nitrogen. I chose Oxygen as it is required for marine plant respiration. Dissolved Carbon is important to consider as it serves as a primary food source for various marine food chains.
 
@@ -47,11 +47,11 @@ The variables of interest in this visualization are :
 
 -   `don_bottle_hot` : Dissolved Organic Nitrogen (µmol/kg)
 
--   `ph_bottle_hot` : Bottle pH (1 is most acidic and 14 is most basic)
-
 -   `oxygen_ctd_bottle_hot` : Bottle CTD Oxygen (µmol/kg)
 
 -   `temperature_ctd_bottle_hot` : Bottle CTD Temperature (ITS- 90, a temperature scale based on the Celsius scale)
+
+Bottle in this context refers to the method in which the variable was sampled. In this case, both Dissolved Organic Carbon and Dissolved Organic Nitrogen were sampled via Niskin bottles. Oxygen, however, was sampled differently, and in turn, was recorded using a CTD Rosette device. CTD stands for conductivity, temperature, and density, and uses various electronic devices to measure select characteristics with respect to depth.
 
 ### Data Wrangling
 
@@ -136,9 +136,9 @@ ggplot(nutrient_clean_2, aes(x = depth)) +
   # second line plot is of dissolved carbon divided by the coefficient in order       for it to show on the same plane as dissolved nitrogen
   geom_line(aes(y = dissolved_c / coeff, color = "Carbon")) +
   # specifying the two axes and labeling
-  scale_y_continuous(name = 'Dissolved Nitrogen (µmol/kg)',
+  scale_y_continuous(name = 'Dissolved Organic Nitrogen (µmol/kg)',
                      sec.axis = sec_axis( ~ . * coeff,
-                                          name = 'Dissolved Carbon (µmol/kg)')) +
+                                          name = 'Dissolved Organic Carbon (µmol/kg)')) +
   # using color blind friendly colors to distinguish the different lines
   scale_color_manual(values = c('Nitrogen' = '#999933',
                                 'Carbon' = '#117733')) +
@@ -194,7 +194,7 @@ ggplot(nutrient_clean_2, aes(x = depth)) +
 
 ```
 
-### Second plot (Presentation) 
+### Second plot (Presentation)
 
 My second plot is a box plot by depth group that can be included in a presentation. I chose to use sequential colors as depth increases so it resonated with the reader and would be more intuitive. I also opted to include some text for what exactly `Bottle CTD` is, as it may not be known by every environmental science professional.
 
@@ -331,7 +331,7 @@ ggplot(data = nutrient_clean_2) +
   ) +
   labs(x = 'Depth (meters)',
        y = ' Concentration (µmol/kg)',
-       title = 'Depth Profile of Dissolved Nitrogen',
+       title = 'Depth Profile of Dissolved Organic Nitrogen',
        size = 'Temperature (°C)',
        tag = "Data Source: Hawaiian Ocean Time-series (HOT)") +
   scale_x_reverse() +
@@ -418,10 +418,12 @@ ggplot(data = nutrient_clean_2) +
 
 6.  *General design:* in terms of group design, I did some data wrangling on the subset so that certain depths were categorized accordingly. This decision helped me group summary statistics in a box plot which then helped me visualize said statistics. For my annotations, I made sure that the spacing was adequate. I added an average line in which I coded in the average values and rotated the text so it fit nicely right above the dashed line.
 
-7.  *Contextualizing data:* I made sure to include annotations to my first and second graph in  order to drive home the main message behind the plot I generated. I also wanted to give some context as to what type of sampling took place for oxygen so I included some text about it to help inform the reader. I also included the range for each subgroup of depth made for the box plot so that the reader could understand what each group\'s range was.
+7.  *Contextualizing data:* I made sure to include annotations to my first and second graph in  order to drive home the main message behind the plot I generated. I also wanted to give some context as to what type of sampling took place for oxygen so I included some text about it to help inform the reader. I also included the range for each subgroup of depth made for the box plot so that the reader could understand what each group's range was.
 
 8.  *My main message* behind these visuals was that the relationships between these oceanographic characteristics are complex and, with the help of visualization, can help digest it in a way that is understandable and clear. I chose three different types of visuals to drive home the point that data can be visualized in vastly different ways, and with some being more complex than others, it goes a long way to add context and supportive text.
 
 9.  *Accessibility*: I spent a good amount of time trying to find colors that were color blind friendly, and made sure to make the font big enough so that it can be easily legible for all groups. I also added alt text for all of my graphs in order to ensure that anyone can grasp the message and take away key information from the graphs.
 
 10. *DEI lens:* I made sure to incorporate alt text for each one of my graphs so that anyone who may have a visual impairment can still take away key points from the graphs made, and I made sure to be as descriptive as possible with it so that each component was accounted for.
+
+Data Citation: Simons CMAP, & Hawaii Ocean Time Series. (2024). Bottle Data HOT, Station ALOHA. <https://simonscmap.com/catalog/datasets/HOT_Bottle_ALOHA>

@@ -134,7 +134,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ol>
 <section id="about-the-data" class="level4">
 <h4 class="anchored" data-anchor-id="about-the-data">About the data</h4>
-<p>I originally used this data set for a previous research project for the University of Washington School of Oceanography. I decided to use this data set in order to grasp and visualize the different relationships or correlations. Each observation is a different sample, represented by the column bottle_id. The dataset's maximum depth observation was around 4000 m below sea level, but I chose to focus mainly on where depth was less than or equal to 200 m because there is still sunlight such that photosynthesis can still take place. The data set uses various sensors for each observation, some being CTD (conductivity, temperature, and density), others being Bottle. The dataset's first observation starts in 1988 and has data available until 2022. The site location for sampling took place at HOT station ALOHA ( 22.75 N, 158.00 W).</p>
+<p>I originally used this data set for a previous research project for the University of Washington School of Oceanography. I decided to use this data set in order to grasp and visualize the different relationships or correlations. Each observation is a different sample, represented by the column bottle_id. The dataset’s maximum depth observation was around 4000 m below sea level, but I chose to focus mainly on where depth was less than or equal to 200 m because there is still sunlight such that photosynthesis can still take place. The data set uses various sensors for each observation, some being CTD (conductivity, temperature, and density), others being Bottle. The dataset’s first observation starts in 1988 and has data available until 2022. The site location for sampling took place at HOT station ALOHA ( 22.75 N, 158.00 W).</p>
 <p>Moreover, this data set contains oceanographic characteristics with respect to depth and gain an understanding of how depth plays a role in the measurement of Oxygen, Dissolved Carbon, and Dissolved Nitrogen. I chose Oxygen as it is required for marine plant respiration. Dissolved Carbon is important to consider as it serves as a primary food source for various marine food chains.</p>
 <p>For more details or if you want to further explore the data, it can be accessed <a href="https://simonscmap.com/catalog/datasets/HOT_Bottle_ALOHA">here</a>!</p>
 <p>If you would like to see my progress in assessing which visuals to use, please take a peak at my Github <a href="https://github.com/mariamkg00/garcia-eds-240-hwk-4">repository</a>.</p>
@@ -147,10 +147,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><code>botid_HOT</code> : unique water sensor ID</p></li>
 <li><p><code>doc_bottle_hot</code> : Dissolved Organic Carbon (µmol/kg)</p></li>
 <li><p><code>don_bottle_hot</code> : Dissolved Organic Nitrogen (µmol/kg)</p></li>
-<li><p><code>ph_bottle_hot</code> : Bottle pH (1 is most acidic and 14 is most basic)</p></li>
 <li><p><code>oxygen_ctd_bottle_hot</code> : Bottle CTD Oxygen (µmol/kg)</p></li>
 <li><p><code>temperature_ctd_bottle_hot</code> : Bottle CTD Temperature (ITS- 90, a temperature scale based on the Celsius scale)</p></li>
 </ul>
+<p>Bottle in this context refers to the method in which the variable was sampled. In this case, both Dissolved Organic Carbon and Dissolved Organic Nitrogen were sampled via Niskin bottles. Oxygen, however, was sampled differently, and in turn, was recorded using a CTD Rosette device. CTD stands for conductivity, temperature, and density, and uses various electronic devices to measure select characteristics with respect to depth.</p>
 </section>
 </section>
 <section id="data-wrangling" class="level3">
@@ -182,9 +182,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># second line plot is of dissolved carbon divided by the coefficient in order       for it to show on the same plane as dissolved nitrogen</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> dissolved_c <span class="sc">/</span> coeff, <span class="at">color =</span> <span class="st">"Carbon"</span>)) <span class="sc">+</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># specifying the two axes and labeling</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">name =</span> <span class="st">'Dissolved Nitrogen (µmol/kg)'</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">name =</span> <span class="st">'Dissolved Organic Nitrogen (µmol/kg)'</span>,</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>                     <span class="at">sec.axis =</span> <span class="fu">sec_axis</span>( <span class="sc">~</span> . <span class="sc">*</span> coeff,</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">name =</span> <span class="st">'Dissolved Carbon (µmol/kg)'</span>)) <span class="sc">+</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">name =</span> <span class="st">'Dissolved Organic Carbon (µmol/kg)'</span>)) <span class="sc">+</span></span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># using color blind friendly colors to distinguish the different lines</span></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">'Nitrogen'</span> <span class="ot">=</span> <span class="st">'#999933'</span>,</span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                                <span class="st">'Carbon'</span> <span class="ot">=</span> <span class="st">'#117733'</span>)) <span class="sc">+</span></span>
@@ -380,7 +380,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">'Depth (meters)'</span>,</span>
 <span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">' Concentration (µmol/kg)'</span>,</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">'Depth Profile of Dissolved Nitrogen'</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">'Depth Profile of Dissolved Organic Nitrogen'</span>,</span>
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">size =</span> <span class="st">'Temperature (°C)'</span>,</span>
 <span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">tag =</span> <span class="st">"Data Source: Hawaiian Ocean Time-series (HOT)"</span>) <span class="sc">+</span></span>
 <span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_reverse</span>() <span class="sc">+</span></span>
@@ -466,11 +466,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><em>Colors</em>: I used color blind friendly combinations and palettes in order to stress accessibility while also ensuring that each group was represented in the best way.</p></li>
 <li><p><em>Typography</em>: I chose fonts Inter and Josefin as they appeared to be the cleanest and neatest fonts to use together.</p></li>
 <li><p><em>General design:</em> in terms of group design, I did some data wrangling on the subset so that certain depths were categorized accordingly. This decision helped me group summary statistics in a box plot which then helped me visualize said statistics. For my annotations, I made sure that the spacing was adequate. I added an average line in which I coded in the average values and rotated the text so it fit nicely right above the dashed line.</p></li>
-<li><p><em>Contextualizing data:</em> I made sure to include annotations to my first and second graph in&nbsp; order to drive home the main message behind the plot I generated. I also wanted to give some context as to what type of sampling took place for oxygen so I included some text about it to help inform the reader. I also included the range for each subgroup of depth made for the box plot so that the reader could understand what each group's range was.</p></li>
+<li><p><em>Contextualizing data:</em> I made sure to include annotations to my first and second graph in&nbsp; order to drive home the main message behind the plot I generated. I also wanted to give some context as to what type of sampling took place for oxygen so I included some text about it to help inform the reader. I also included the range for each subgroup of depth made for the box plot so that the reader could understand what each group’s range was.</p></li>
 <li><p><em>My main message</em> behind these visuals was that the relationships between these oceanographic characteristics are complex and, with the help of visualization, can help digest it in a way that is understandable and clear. I chose three different types of visuals to drive home the point that data can be visualized in vastly different ways, and with some being more complex than others, it goes a long way to add context and supportive text.</p></li>
 <li><p><em>Accessibility</em>: I spent a good amount of time trying to find colors that were color blind friendly, and made sure to make the font big enough so that it can be easily legible for all groups. I also added alt text for all of my graphs in order to ensure that anyone can grasp the message and take away key information from the graphs.</p></li>
 <li><p><em>DEI lens:</em> I made sure to incorporate alt text for each one of my graphs so that anyone who may have a visual impairment can still take away key points from the graphs made, and I made sure to be as descriptive as possible with it so that each component was accounted for.</p></li>
 </ol>
+<p>Data Citation: Simons CMAP, &amp; Hawaii Ocean Time Series. (2024). Bottle Data HOT, Station ALOHA. <a href="https://simonscmap.com/catalog/datasets/HOT_Bottle_ALOHA" class="uri">https://simonscmap.com/catalog/datasets/HOT_Bottle_ALOHA</a></p>
 </section>
 
 </main>
