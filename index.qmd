@@ -125,7 +125,7 @@ nitrogen_plot <- ggplot(data = nutrient_clean_2)+
   geom_hline(yintercept = avg_dissolved_n,
              color = 'black',
              linetype = 'dashed',
-             linewidth = 1)+
+             linewidth = 0.81)+
   scale_x_reverse()+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
   labs(y = 'Dissolved Organic Nitrogen (µmol/kg)',
@@ -133,7 +133,7 @@ nitrogen_plot <- ggplot(data = nutrient_clean_2)+
        title = 'Depth Profile of \nDissolved Organic Nitrogen')+
   coord_flip()+
   theme(
-    aspect.ratio = 2,
+    aspect.ratio = 1.5,
     axis.title.x = element_text(family = 'inter', size = 12,
                                 margin = margin(10, 0, 0, 0)),
     axis.title.y = element_text(family = 'inter', size = 14,
@@ -141,7 +141,8 @@ nitrogen_plot <- ggplot(data = nutrient_clean_2)+
     plot.title = element_text(
       family = 'josefin',
       size = 16,
-      hjust = .5
+      hjust = .5,
+      margin = margin(0,0,10,0)
     ),
     panel.border = element_blank(),
     panel.grid.major = element_blank(),
@@ -163,7 +164,7 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
   geom_hline(yintercept = avg_dissolved_c,
              color = 'black',
              linetype = 'dashed',
-             linewidth = 1)+
+             linewidth = 0.81)+
   scale_x_reverse()+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
   labs(y = 'Dissolved Organic Carbon (µmol/kg)',
@@ -172,7 +173,7 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
        tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
    coord_flip()+
   theme(
-    aspect.ratio = 2,
+    aspect.ratio = 1.5,
     axis.title.x = element_text(family = 'inter', size = 12, 
                                 margin = margin(10, 0, 0, 0)),
     axis.title.y = element_text(family = 'inter', size = 14,
@@ -180,7 +181,8 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
     plot.title = element_text(
       family = 'josefin',
       size = 16,
-      hjust = .5
+      hjust = .5,
+      margin = margin(0,0,10,0)
     ),
     panel.border = element_blank(),
     panel.grid.major = element_blank(),
@@ -189,7 +191,8 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
     axis.line = element_line(colour = "grey"),
     axis.text.x = element_text(size = 14),
     axis.text.y = element_text(size = 14),
-    plot.tag.position = c(.581, -.046))+
+    plot.tag.position = c(.681, -.046),
+    plot.tag = element_text(margin = margin(10,0,0,0)))+
   annotate(
     "text",
     x = 80,
@@ -201,7 +204,7 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
 
  nitrogen_plot + carbon_plot +
   plot_annotation(
-    caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is that the most activity occurs between 40 - 60 m below \nsea level. Dissolved Organic Carbon sharply declines whereas Dissolved Organic Nitrogen sharply increases.',
+    caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is these two elements show opposite trends. \n. Dissolved Organic Carbon is generally declining whereas Dissolved Organic Nitrogen generally increasing.',
     theme = theme(
       plot.caption = element_text(family = 'inter',
                                   size = 13,
