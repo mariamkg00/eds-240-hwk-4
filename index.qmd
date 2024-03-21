@@ -21,7 +21,7 @@ Each graph will answer the question, but using different variables, as this data
 
 My three plots:
 
-1.  Depth profiles of concentration of nitrogen and carbon vs depth \[dual axis plot\]
+1.  Depth profiles of concentration of nitrogen and carbon vs depth \[line plot using `patchwork()` \]
 2.  Box plot by depth group of oxygen conentration \[box plot\]
 3.  Depth profile of Dissolved Nitrogen with respect to Temperature \[scatter plot\]
 
@@ -130,16 +130,17 @@ nitrogen_plot <- ggplot(data = nutrient_clean_2)+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
   labs(y = 'Dissolved Organic Nitrogen (µmol/kg)',
        x = 'Depth (meters)',
-       title = 'Depth Profile of Dissolved Organic Nitrogen')+
+       title = 'Depth Profile of \nDissolved Organic Nitrogen')+
   coord_flip()+
   theme(
-    axis.title.x = element_text(family = 'inter', size = 14,
+    aspect.ratio = 2,
+    axis.title.x = element_text(family = 'inter', size = 12,
                                 margin = margin(10, 0, 0, 0)),
     axis.title.y = element_text(family = 'inter', size = 14,
                                 margin = margin(0, 10, 10, 0)),
     plot.title = element_text(
       family = 'josefin',
-      size = 18,
+      size = 16,
       hjust = .5
     ),
     panel.border = element_blank(),
@@ -153,8 +154,8 @@ nitrogen_plot <- ggplot(data = nutrient_clean_2)+
     "text",
     x = 80,
     y = 7.8,
-    label = 'Average concentration: 5.8 (µmol/kg)',
-    size = 4.5
+    label = 'Average: 5.8 (µmol/kg)',
+    size = 3.5
   )
 
 carbon_plot <- ggplot(data = nutrient_clean_2)+
@@ -167,18 +168,18 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
   scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
   labs(y = 'Dissolved Organic Carbon (µmol/kg)',
        x = 'Depth (meters)',
-       title = 'Depth Profile of Dissolved Organic Carbon',
+       title = 'Depth Profile of \nDissolved Organic Carbon',
        tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
    coord_flip()+
   theme(
     aspect.ratio = 2,
-    axis.title.x = element_text(family = 'inter', size = 14, 
+    axis.title.x = element_text(family = 'inter', size = 12, 
                                 margin = margin(10, 0, 0, 0)),
     axis.title.y = element_text(family = 'inter', size = 14,
                                 margin = margin(0, 10, 10, 0)),
     plot.title = element_text(
       family = 'josefin',
-      size = 18,
+      size = 16,
       hjust = .5
     ),
     panel.border = element_blank(),
@@ -188,22 +189,23 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
     axis.line = element_line(colour = "grey"),
     axis.text.x = element_text(size = 14),
     axis.text.y = element_text(size = 14),
-    plot.tag.position = c(.381, -.046))+
+    plot.tag.position = c(.581, -.046))+
   annotate(
     "text",
     x = 80,
     y = 112,
-    label = 'Average concentration: 95.1 (µmol/kg)',
-    size = 4.5
+    label = 'Average: 95.1 (µmol/kg)',
+    size = 3.5
   )
 
 
-carbon_plot + nitrogen_plot +
+ nitrogen_plot + carbon_plot +
   plot_annotation(
     caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is that the most activity occurs between 40 - 60 m below \nsea level. Dissolved Organic Carbon sharply declines whereas Dissolved Organic Nitrogen sharply increases.',
     theme = theme(
       plot.caption = element_text(family = 'inter',
-                                  size = 13),
+                                  size = 13,
+                                  margin = margin(10,0,0,0)),
       plot.title = element_text(
         family = 'josefin',
         size = 22,
@@ -400,10 +402,10 @@ I chose to generate a simpler depth profile of Dissolved Nitrogen and made the s
 #| fig-alt: "A scatterplot depicting the depth profile of Dissolved Nitrogen which shows a general stable relationship with depth, with an outlier spiking its concentration at around 57 meters below sea level, and the size of the point relates to the temperature value for each observation."
 
 # specifying arrow for geom_curve 
-arrow_df <- data.frame(x1 = 45,
-                       y1 = 8,
+arrow_df <- data.frame(x1 = 38,
+                       y1 = 8.2,
                        x2 = 56,
-                       y2 = 8.76)
+                       y2 = 8.96)
 
 # specifying midpoint for mean temperature
 mid <- mean(nutrient_clean_2$temperature)
@@ -424,8 +426,9 @@ ggplot(data = nutrient_clean_2) +
   ) +
   labs(x = 'Depth (meters)',
        y = ' Concentration (µmol/kg)',
-       title = 'Depth Profile of Dissolved Organic Nitrogen',
-       size = 'Temperature (°C)',
+       title = 'The Varied Concentration of Dissolved Nitrogen with Respect to Temperature and Depth',
+       subtitle = 'Colored Scatterplot Demonstrating the Variation in Nitrogen Concentration with a Line of Best Fit',
+       color = 'Temperature (°C)',
        tag = "Data Source: Hawaiian Ocean Time-series (HOT)") +
   scale_x_reverse() +
   scale_y_continuous(breaks = seq(4, 10, 1)) +
@@ -447,22 +450,23 @@ ggplot(data = nutrient_clean_2) +
       size = 18,
       hjust = .5
     ),
+    plot.subtitle = element_text(family = 'josefin', size = 12, hjust = 0.5),
     axis.text.x = element_text(family = 'inter', size = 13),
     axis.text.y = element_text(family = 'inter', size = 13),
     panel.grid.minor.x = element_blank(),
     panel.grid.major.y = element_line(color = '#E5E4E2', size = 0.25),
     panel.grid.minor.y = element_blank(),
     panel.grid.major.x = element_line(color = '#E5E4E2', size = 0.25),
-    plot.background = element_rect(fill = "#c9e9f6"),
     legend.text = element_text(family = 'inter', size = 12),
-    legend.background = element_rect(fill = "#c9e9f6"),
+    legend.title = element_text(family = 'inter', size = 12, hjust = 1),
+    legend.background = element_rect(fill = NA),
     legend.key = element_blank(),
     plot.tag.position = 'bottom',
     plot.tag = element_text(
       family = 'inter',
       size = 10,
       face = 'italic',
-      margin = margin(10, 0, 0, 0)
+      margin = margin(5, 0, 0, 0)
     )
   ) +
   geom_curve(aes(
@@ -475,11 +479,11 @@ ggplot(data = nutrient_clean_2) +
   arrow = arrow(length = unit(0.03, 'npc'))) +
   annotate(
     'text',
-    x = 36,
-    y = 8.75,
-    label = "Descending from the surface, the \nconcentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
+    x = 30,
+    y = 8.52,
+    label = "Descending from the surface, the concentration of Nitrogen \nspikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
     fontface = 'italic',
-    hjust = 0.5
+    hjust = 0.5, size = 4
   )
 ```
 
@@ -487,9 +491,9 @@ ggplot(data = nutrient_clean_2) +
 
 1.  *Graphic form:* I wanted to make sure that each of my graphs had the perfect balance of readability and complexity. For that reason, my first graph I chose a dual axis plot so that I could assess the relationship of depth on both Carbon and Nitrogen, and visualize the relationship between the two. I chose to use this form of visualization because both variables were of the same units but different scaling, and I wanted to make sure that the axes were legible enough so that the reader could understand which axis belonged to which component. 
 
-    -   My second graph is a box of Oxygen concentration and whisker plot stacked with a scatter plot with the fill represented by pH value. I opted to visualize this relationship so that the median value of Oxygen can be clearly differentiated between the different subgroups of water depths I created. I also chose to make sure the outliers stood out by marking it with a different shape and color, so that the reader would be able to distinguish between a normal pH value and a not so normal one. 
+    -   My second graph is a box of Oxygen concentration and whisker plot stacked with a scatter plot with the fill represented by pH value. I opted to visualize this relationship so that the median value of Oxygen can be clearly differentiated between the different subgroups of water depths I created. I also chose to make sure the outliers were not repeated twice by putting `outlier.shape = NA` in order to avoid confusion.
 
-    -   My third and final graph was a scatter plot of the depth profile of Nitrogen, with the size of the points representing temperature. This plot was intended for an audience who may not have coding experience or expertise in this field, so I opted for visualization that would be the most comprehensive. Moreover, I also added a line of best fit to represent the general relationship between the two variables.
+    -   My third and final graph was a scatter plot of the depth profile of Nitrogen, with the color of the points representing temperature. This plot was intended for an audience who may not have coding experience or expertise in this field, so I opted for visualization that would be the most comprehensive. Moreover, I also added a line of best fit to represent the general relationship between the two variables.
 
 2.  *Text*: I made sure that for all my titles that the font was different than the axis labels so that it draws attention to the reader in helping them understand what exactly they are looking at. I made sure to add annotations, especially in my third graph, so that the reader is able to take home the message intended for the audience. I also added alt text for my third plot so that it could be as accessible as possible.
 
