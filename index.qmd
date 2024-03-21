@@ -217,15 +217,89 @@ carbon_plot + nitrogen_plot +
 
 ### Second plot (Presentation)
 
-My second plot is a box plot by depth group that can be included in a presentation. I chose to use sequential colors as depth increases so it resonated with the reader and would be more intuitive. I also opted to include some text for what exactly `Bottle CTD` is, as it may not be known by every environmental science professional.
+My second plot is a box plot by depth group that can be included in a presentation. I chose to use sequential colors as depth increases so it resonated with the reader and would be more intuitive. I also opted to include some text for what exactly `Bottle CTD` is, as it may not be known by every environmental science professional. If this were a presentation, then the first slide I would have would be the axes and title associated. The second plot would be the `geom_point()` layer, and the third (final) would be the boxplot layer and associated citations added on top.
+
+```{r warning = FALSE, message=FALSE}
+#| code-summary: "How I did it:"
+
+ggplot(data = nutrient_clean_2, aes(x = depth, y = oxygen))+
+  geom_point(alpha = 0.00000000000001)+
+  scale_x_reverse()+
+  coord_flip()+
+    labs(
+    y = 'Bottle CTD Oxygen (µmol/kg)',
+    x = 'Depth (m)',
+    title = 'The Overall Increase in Oxygen Concentration Associated with an Increase in Depth' )+
+  theme(
+    axis.title.x = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(10, 0, 0, 0)
+    ),
+    axis.title.y = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(0, 10, 10, 0)
+    ),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5,
+      lineheight = 1,
+      margin = margin(0, 0, 10, 0)
+    ),
+    legend.title = element_text(
+      family = 'inter',
+      size = 16,
+      hjust = .5
+    ),
+      panel.background = element_blank(),
+    axis.line = element_line(colour = "darkgrey"))
+```
+
+```{r warning = FALSE, message=FALSE}
+#| code-summary: "How I did it:"
+
+ggplot(data = nutrient_clean_2, aes(x = depth, y = oxygen))+
+  geom_point(alpha = 0.55, width = 0.5)+
+  scale_x_reverse()+
+  coord_flip()+
+    labs(
+    y = 'Bottle CTD Oxygen (µmol/kg)',
+    x = 'Depth (m)',
+    title = 'The Overall Increase in Oxygen Concentration Associated with an Increase in Depth' )+
+  theme(
+    axis.title.x = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(10, 0, 0, 0)
+    ),
+    axis.title.y = element_text(
+      family = 'inter',
+      size = 14,
+      margin = margin(0, 10, 10, 0)
+    ),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5,
+      lineheight = 1,
+      margin = margin(0, 0, 10, 0)
+    ),
+    legend.title = element_text(
+      family = 'inter',
+      size = 16,
+      hjust = .5
+    ),
+      panel.background = element_blank(),
+    axis.line = element_line(colour = "darkgrey"))
+```
 
 ```{r warning = FALSE, message = FALSE}
 #| code-summary: "How I did it:"
 
 #| fig-alt: "A stacked boxplot demonstrating the relationship between depth and Bottle CTD Oxygen across four subgroups of depth, with its earliest values being recorded in 1988 and its latest value being recorded in 2022, where the median value of the first depth subgroup is higher than the second and third depth subgroup, and the median of the last depth subgroup, on average, has the highest median value of Bottle CTD Oxygen. Oxygen was measured using CTD sensors, which stands for conductivity, temperature, and density. CTD sensors are critical instruments in measuring oceanographic samples."
 
-# custom color palette for depth subgroup (made sure they were color-blind friendly )
-cols <- c('#edf8e9', '#bae4b3', "#74c476", '#238b45')
 
 # generating plot 
 ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
@@ -233,20 +307,21 @@ ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
   geom_boxplot(
     aes(fill = depth_group),
     alpha = 0.75,
-    outlier.color =  "#54278f", # filling the outlier with a stand-out color 
-    outlier.shape = 17, # putting the outlier as a triangle
-    outlier.size = 2 # specifying outlier size 
+    outlier.shape = NA
   ) +
   # adding a scatterplot layer with same variables 
-  geom_point(aes(x = depth, y = oxygen), alpha = 0.25) +
+  geom_point(aes(x = depth, y = oxygen), alpha = 0.55, size = 0.75) +
   scale_fill_manual(
-    values = rev(cols),
-    labels = c(
+    values = c('#bae4b3',
+               '#bae4b3',
+               '#bae4b3',
+               '#bae4b3'),
+    labels = rev(c(
       '(60 < depth <80) ',
       '(40 < depth < 60)',
       '(20 < depth < 40)',
-      ' (20 < depth < 0)'
-    )
+      '(20 < depth < 0)'
+    ))
   ) +
   # reversing the x axis scale so that the top most number is 0 and the bottom        most number is 80 
   scale_x_reverse() +
@@ -257,7 +332,7 @@ ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
     fill = 'Water Depth (m)',
     y = 'Bottle CTD Oxygen (µmol/kg)',
     x = 'Depth (m)',
-    title = 'Oxygen Concentration and Temperature and its Relationship \nto Depth within the Epipelagic Zone',
+    title = 'The Overall Increase in Oxygen Concentration Associated with an Increase in Depth',
     tag = "Data Source: Hawaiian Ocean Time-series (HOT)"
   ) +
   # flipping x and y axes
@@ -293,6 +368,7 @@ ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
     axis.text = element_text(family = 'inter', size = 12),
     legend.key = element_blank(),
     legend.background = element_rect(linewidth = 0.05, color = 'black'),
+    legend.position = 'right',
     panel.background = element_blank(),
     axis.line = element_line(colour = "darkgrey"),
     plot.tag.position = 'bottom',
@@ -304,13 +380,6 @@ ggplot(data = nutrient_clean_2, aes(y = oxygen, x = depth)) +
     )
   ) +
   # plot annotations 
-  annotate(
-    'text',
-    x = 24,
-    y = 160,
-    label = 'Outliers in each depth subgroup are represented with a purple triangle.',
-    hjust = 0
-  ) +
   annotate(
     'text',
     x = 10,
@@ -335,19 +404,22 @@ arrow_df <- data.frame(x1 = 45,
                        y1 = 8,
                        x2 = 56,
                        y2 = 8.76)
+
+# specifying midpoint for mean temperature
+mid <- mean(nutrient_clean_2$temperature)
 # making a data frame for the highest value of nitrogen 
 point <- data.frame(y = 9.36, x = 57.9)
 ggplot(data = nutrient_clean_2) +
   geom_point(
-    aes(x = depth, y = dissolved_n, size = temperature),
-    color = '#09555c',
+    aes(x = depth, y = dissolved_n, color = temperature),
     alpha = 0.5
   ) +
+  scale_color_gradient2(midpoint = mid, mid = '#6495ED',low = '#0047AB', high = 'red')+
   geom_point(
     data = point,
     aes(x = x, y = y),
     color = 'red',
-    size = 4,
+    size = 1.25,
     alpha = 0.45
   ) +
   labs(x = 'Depth (meters)',
@@ -402,20 +474,10 @@ ggplot(data = nutrient_clean_2) +
   data = arrow_df,
   arrow = arrow(length = unit(0.03, 'npc'))) +
   annotate(
-    "rect",
-    xmin = 50,
-    xmax = 70,
-    ymin = 8.75,
-    ymax = 10,
-    size = .05,
-    fill = 'lightgrey' ,
-    alpha = 0.25
-  ) +
-  annotate(
     'text',
     x = 36,
-    y = 9.05,
-    label = "Descending from the surface, the concentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
+    y = 8.75,
+    label = "Descending from the surface, the \nconcentration of Nitrogen\n spikes to 9.36 µmol/kg. At ~57.9 meters below surface\n level, the pH from this oceanographic sample was 8.06.",
     fontface = 'italic',
     hjust = 0.5
   )
