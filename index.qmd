@@ -191,7 +191,7 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
     axis.line = element_line(colour = "grey"),
     axis.text.x = element_text(size = 14),
     axis.text.y = element_text(size = 14),
-    plot.tag.position = c(.681, -.046),
+    plot.tag.position = c(-.49, -.046),
     plot.tag = element_text(margin = margin(10,0,0,0)))+
   annotate(
     "text",
@@ -204,7 +204,7 @@ carbon_plot <- ggplot(data = nutrient_clean_2)+
 
  nitrogen_plot + carbon_plot +
   plot_annotation(
-    caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is these two elements show opposite trends. \n. Dissolved Organic Carbon is generally declining whereas Dissolved Organic Nitrogen generally increasing.',
+    caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is these two elements show opposite trends. \nDissolved Organic Carbon is generally declining whereas Dissolved Organic Nitrogen generally increasing.',
     theme = theme(
       plot.caption = element_text(family = 'inter',
                                   size = 13,
