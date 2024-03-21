@@ -194,6 +194,104 @@ ggplot(nutrient_clean_2, aes(x = depth)) +
 
 ```
 
+```{r}
+# side by side plot; add caption with dashed line; avoid rotated text; and takeaway message; make dashed line darker
+
+nitrogen_plot <- ggplot(data = nutrient_clean_2)+
+  geom_line(aes(x = depth , y = dissolved_n), color = '#5b3e31')+
+  geom_hline(yintercept = avg_dissolved_n,
+             color = 'black',
+             linetype = 'dashed',
+             linewidth = 1)+
+  scale_x_reverse()+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
+  labs(y = 'Dissolved Organic Nitrogen (µmol/kg)',
+       x = 'Depth (meters)',
+       title = 'Depth Profile of Dissolved Organic Nitrogen')+
+  coord_flip()+
+  theme(
+    axis.title.x = element_text(family = 'inter', size = 14,
+                                margin = margin(10, 0, 0, 0)),
+    axis.title.y = element_text(family = 'inter', size = 14,
+                                margin = margin(0, 10, 10, 0)),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey"),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14))+
+   annotate(
+    "text",
+    x = 80,
+    y = 7.8,
+    label = 'Average concentration: 5.8 (µmol/kg)',
+    size = 4.5
+  )
+
+carbon_plot <- ggplot(data = nutrient_clean_2)+
+  geom_line(aes(x = depth , y = dissolved_c), color = '#0072B2')+
+  geom_hline(yintercept = avg_dissolved_c,
+             color = 'black',
+             linetype = 'dashed',
+             linewidth = 1)+
+  scale_x_reverse()+
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
+  labs(y = 'Dissolved Organic Carbon (µmol/kg)',
+       x = 'Depth (meters)',
+       title = 'Depth Profile of Dissolved Organic Carbon',
+       tag = "Data Source: Hawaiian Ocean Time-series (HOT)")+
+   coord_flip()+
+  theme(
+    aspect.ratio = 2,
+    axis.title.x = element_text(family = 'inter', size = 14, 
+                                margin = margin(10, 0, 0, 0)),
+    axis.title.y = element_text(family = 'inter', size = 14,
+                                margin = margin(0, 10, 10, 0)),
+    plot.title = element_text(
+      family = 'josefin',
+      size = 18,
+      hjust = .5
+    ),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "grey"),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    plot.tag.position = c(.381, -.046))+
+  annotate(
+    "text",
+    x = 80,
+    y = 112,
+    label = 'Average concentration: 95.1 (µmol/kg)',
+    size = 4.5
+  )
+
+
+carbon_plot + nitrogen_plot +
+  plot_annotation(
+    caption = '\nDashed line represents average concentration.\n The main takeaway message behind these profiles is that the most activity occurs between 40 - 60 m below \nsea level. Dissolved Organic Carbon sharply declines whereas Dissolved Organic Nitrogen sharply increases.',
+    theme = theme(
+      plot.caption = element_text(family = 'inter',
+                                  size = 13),
+      plot.title = element_text(
+        family = 'josefin',
+        size = 22,
+        hjust = .5,
+        margin = margin(0, 0, 25, 0)
+      )
+    ),
+    title = 'Depth Profile Comparison of Dissolved Organic Carbon and Dissolved Organic Nitrogen'
+  )
+```
+
 ### Second plot (Presentation)
 
 My second plot is a box plot by depth group that can be included in a presentation. I chose to use sequential colors as depth increases so it resonated with the reader and would be more intuitive. I also opted to include some text for what exactly `Bottle CTD` is, as it may not be known by every environmental science professional.
